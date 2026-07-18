@@ -1,48 +1,114 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
-import RootLayout from './layouts/RootLayout';
+// Context Providers
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+
+// Layouts
+import PublicLayout from './layouts/PublicLayout';
+import StudentLayout from './layouts/StudentLayout';
+import AdminLayout from './layouts/AdminLayout';
+import AuthLayout from './layouts/AuthLayout';
+
+// Routes & Pages
 import ProtectedRouter from './routes/ProtectedRouter';
-import ErrorPage from './pages/ErrorPage';
-import NotFound from './pages/NotFound';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Scholarships from './pages/Scholarships';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Scholarships from './pages/Scholarships';
+import Recommendations from './pages/Recommendations';
+import Applications from './pages/Applications';
+import Documents from './pages/Documents';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
+import NotFound from './pages/NotFound';
 
 const router = createBrowserRouter([
+  // Public general pages
   {
     path: '/',
-    element: <RootLayout />,
-    errorElement: <ErrorPage />,
+    element: <PublicLayout />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'login', element: <Login /> },
-      { path: 'scholarships', element: <Scholarships /> },
-      {
-        path: 'dashboard',
-        element: (
-          <ProtectedRouter allowedRoles={['student', 'admin']}>
-            <Dashboard />
-          </ProtectedRouter>
-        ),
-      },
-      {
-        path: 'admin',
-        element: (
-          <ProtectedRouter allowedRoles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRouter>
-        ),
-      },
-      { path: '*', element: <NotFound /> },
     ],
   },
+  
+  // Authentication centered card pages
+  {
+    path: '/',
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+    ],
+  },
+  
+  // Student Portal protected pages
+  {
+    path: '/',
+    element: (
+      <ProtectedRouter allowedRoles={['student', 'admin']}>
+        <StudentLayout />
+      </ProtectedRouter>
+    ),
+    children: [
+      { path: 'dashboard', element: <Dashboard /> },
+      { path: 'profile', element: <Profile /> },
+      { path: 'scholarships', element: <Scholarships /> },
+      { path: 'recommendations', element: <Recommendations /> },
+      { path: 'applications', element: <Applications /> },
+      { path: 'documents', element: <Documents /> },
+      { path: 'notifications', element: <Notifications /> },
+      { path: 'settings', element: <Settings /> },
+    ],
+  },
+
+  // Admin Portal console pages
+  {
+    path: '/',
+    element: (
+      <ProtectedRouter allowedRoles={['admin']}>
+        <AdminLayout />
+      </ProtectedRouter>
+    ),
+    children: [
+      { path: 'admin', element: <AdminDashboard /> },
+    ],
+  },
+
+  // Catch-all 404 handler
+  {
+    path: '*',
+    element: <NotFound />,
+  }
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#334155',
+              color: '#fff',
+              fontSize: '13px',
+              fontWeight: '600',
+              borderRadius: '12px',
+            },
+          }}
+        />
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App;

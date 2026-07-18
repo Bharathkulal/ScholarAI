@@ -1,15 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;850&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: 37 99 235;    /* #2563EB */
+    --color-secondary: 96 165 250; /* #60A5FA */
+    --color-success: 16 185 129;   /* #10B981 */
+    --color-warning: 245 158 11;   /* #F59E0B */
+    --color-error: 239 68 68;      /* #EF4444 */
+    
+    --bg-app: 248 250 252;         /* #F8FAFC */
+    --bg-surface: 255 255 255;     /* #FFFFFF */
+    --text-main: 17 24 39;         /* #111827 */
+    --text-muted: 75 85 99;        /* #4B5563 */
+    --border-color: 226 232 240;   /* #E2E8F0 */
+  }
+
+  .dark {
+    --bg-app: 15 23 42;            /* #0F172A */
+    --bg-surface: 30 41 59;        /* #1E293B */
+    --text-main: 248 250 252;      /* #F8FAFC */
+    --text-muted: 148 163 184;     /* #94A3B8 */
+    --border-color: 51 65 85;      /* #334155 */
+  }
+
   body {
-    @apply bg-dark-950 text-dark-100 font-sans antialiased overflow-x-hidden;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.07) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.05) 0px, transparent 50%);
+    @apply bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden transition-colors duration-300;
+    background-color: rgb(var(--bg-app));
+    color: rgb(var(--text-main));
   }
 
   /* Custom Scrollbar */
@@ -18,32 +39,68 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-dark-950;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-dark-800 rounded-full hover:bg-brand-600 transition-colors duration-200;
+    @apply bg-slate-200 rounded-full transition-colors duration-200;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-300;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-600;
   }
 }
 
 @layer components {
-  /* Premium Glassmorphic Cards */
-  .glass-card {
-    @apply bg-dark-900/50 backdrop-blur-md border border-dark-800/80 rounded-2xl shadow-xl transition-all duration-300;
+  /* Typography Utilities */
+  .text-hero {
+    @apply text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight;
   }
-  .glass-card-hover {
-    @apply hover:border-brand-500/30 hover:shadow-brand-500/5 hover:-translate-y-0.5;
+  
+  .text-section-title {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white;
   }
 
-  /* Sleek Input Fields */
-  .form-input {
-    @apply w-full bg-dark-950/80 border border-dark-800 rounded-xl px-4 py-3 text-dark-100 placeholder-dark-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all duration-200;
+  .text-card-title {
+    @apply text-lg font-semibold tracking-tight text-slate-900 dark:text-white;
+  }
+
+  .text-body-text {
+    @apply text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed;
+  }
+
+  .text-caption {
+    @apply text-xs text-slate-400 dark:text-slate-500 font-medium;
+  }
+
+  /* Premium Cards & Containers */
+  .premium-card {
+    @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-soft hover:shadow-premium transition-all duration-300;
   }
 
   /* Buttons */
   .btn-primary {
-    @apply px-5 py-3 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-xl shadow-lg shadow-brand-600/20 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+    @apply px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm;
   }
+  
   .btn-secondary {
-    @apply px-5 py-3 bg-dark-900 border border-dark-800 hover:bg-dark-800 text-dark-200 font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2;
+    @apply px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2.5 bg-transparent border-2 border-primary-600 hover:bg-primary-50 text-primary-600 font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm;
+  }
+
+  .btn-link {
+    @apply text-primary-600 hover:text-primary-750 hover:underline font-medium transition-all duration-200 inline-flex items-center gap-1 text-sm;
   }
 }
