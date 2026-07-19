@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import Logo from '../common/Logo';
 import {
   Shield,
   Search,
@@ -25,8 +26,9 @@ export const AdminSidebar = ({ className = '', onItemClick }) => {
     <aside className={`w-[260px] bg-[#111111] text-white border-r border-[#222222] h-full flex flex-col pt-6 ${className}`}>
       
       {/* Admin Indicator */}
-      <div className="px-6 mb-6">
-        <div className="bg-[#CD0000] text-white rounded-[16px] px-3.5 py-2 text-center text-[10px] font-extrabold tracking-widest uppercase font-heading shadow-[0_4px_12px_rgba(205,0,0,0.3)]">
+      <div className="px-6 mb-6 space-y-3">
+        <Logo isDark={true} link="/admin" />
+        <div className="bg-[#CD0000] text-white rounded-[16px] px-3 py-1.5 text-center text-[10px] font-extrabold tracking-widest uppercase font-heading shadow-[0_4px_12px_rgba(205,0,0,0.3)]">
           System Control Console
         </div>
       </div>

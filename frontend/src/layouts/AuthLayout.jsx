@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import Logo from '../components/common/Logo';
-import { GraduationCap, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const AuthLayout = () => {
   return (
@@ -12,7 +12,7 @@ export const AuthLayout = () => {
         
         {/* Top Logo */}
         <div className="z-10">
-          <Logo link="/" />
+          <Logo link="/" isDark={true} />
         </div>
 
         {/* Center Editorial Graphics & Copy */}

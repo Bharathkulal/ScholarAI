@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import Logo from '../common/Logo';
 import {
   LayoutDashboard,
   Search,
@@ -27,8 +28,9 @@ export const StudentSidebar = ({ className = '', onItemClick }) => {
     <aside className={`w-[260px] bg-[#111111] text-white border-r border-[#222222] h-full flex flex-col pt-6 ${className}`}>
       
       {/* Sidebar Label Header */}
-      <div className="px-6 mb-4">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest font-heading text-[#888888]">
+      <div className="px-6 mb-6">
+        <Logo isDark={true} link="/dashboard" />
+        <span className="text-[10px] font-extrabold uppercase tracking-widest font-heading text-[#888888] block mt-3">
           Student Portal
         </span>
       </div>
