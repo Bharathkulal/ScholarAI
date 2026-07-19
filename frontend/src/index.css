@@ -13,13 +13,19 @@
     --color-border-muted: #DDDDDD;
   }
 
+  html, body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
   body {
     background-color: var(--color-cream);
     color: var(--color-rich-black);
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -44,17 +50,107 @@
   }
 }
 
+@layer utilities {
+  /* Global Layout Container: Max 1600px with responsive horizontal padding */
+  .app-container {
+    width: 100%;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .app-container {
+      padding-left: 32px;
+      padding-right: 32px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .app-container {
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .app-container {
+      padding-left: 64px;
+      padding-right: 64px;
+    }
+  }
+
+  /* Responsive Hero Typography Scale */
+  .hero-title-scaling {
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+    color: #111111;
+    font-size: 48px;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title-scaling {
+      font-size: 64px;
+      line-height: 0.90;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .hero-title-scaling {
+      font-size: 80px;
+      line-height: 0.88;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .hero-title-scaling {
+      font-size: 96px;
+      line-height: 0.86;
+    }
+  }
+
+  /* Section Spacing Utility: 120px on desktop */
+  .section-spacing {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  @media (min-width: 768px) {
+    .section-spacing {
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .section-spacing {
+      padding-top: 120px;
+      padding-bottom: 120px;
+    }
+  }
+
+  /* Grid Gap Utility: 32px gap */
+  .grid-layout-32 {
+    display: grid;
+    gap: 24px;
+  }
+
+  @media (min-width: 768px) {
+    .grid-layout-32 {
+      gap: 32px;
+    }
+  }
+}
+
 @layer components {
   /* Typography Classes */
   .font-heading {
     font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  }
-
-  .text-hero {
-    font-family: 'Space Grotesk', 'Manrope', sans-serif;
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -0.04em;
   }
 
   .text-section-title {
@@ -80,6 +176,7 @@
     background-color: #FFFFFF;
     border: 1px solid #DDDDDD;
     border-radius: 24px;
+    padding: 24px;
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -97,6 +194,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
+    min-h: 44px;
     background-color: #CD0000;
     color: #FFFFFF;
     font-weight: 600;
@@ -123,6 +221,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
+    min-h: 44px;
     background-color: #FFFFFF;
     color: #111111;
     font-weight: 600;
@@ -148,6 +247,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
+    min-h: 44px;
     background-color: transparent;
     color: #CD0000;
     font-weight: 600;
@@ -166,6 +266,7 @@
   .input-field {
     width: 100%;
     padding: 0.75rem 1.25rem;
+    min-height: 44px;
     background-color: #FFFFFF;
     border: 1px solid #DDDDDD;
     border-radius: 16px;

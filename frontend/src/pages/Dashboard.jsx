@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Sparkles, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
+import { Sparkles, CheckCircle2, Clock } from 'lucide-react';
 import { PageTitle } from '../components/common/PageTitle';
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
@@ -18,12 +18,12 @@ const Dashboard = () => {
       
       {/* Page Title */}
       <PageTitle
-        title={`Welcome back, ${userName.split(' ')[0]}`}
-        description="Here is your real-time scholarship discovery overview, AI matches, and active grant applications."
+        title={`Namaskara, ${userName.split(' ')[0]}`}
+        description="Here is your Karnataka & National scholarship discovery overview, AI SSP matches, and active grant applications."
         action={
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider font-heading text-[#CD0000] bg-[#FFE5E5] border border-[#FFC9C9] px-3.5 py-1.5 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />
-            AI Audit Active
+            SSP Karnataka Audit Active
           </div>
         }
       />
@@ -64,7 +64,7 @@ const Dashboard = () => {
             5
           </span>
           <span className="text-xs text-[#666666] font-heading font-medium mt-2 block">
-            All files encrypted & audited
+            SSLC / Income & Caste verified
           </span>
         </Card>
       </Grid>
@@ -76,7 +76,7 @@ const Dashboard = () => {
         <div className="lg:col-span-8 space-y-6">
           <SectionHeader
             title="Top AI Recommendations"
-            subtitle="Calculated specifically against your GPA score, field of study, and verified profile credentials."
+            subtitle="Calculated specifically against your 9.2 CGPA score, Karnataka Domicile, and family income certificate."
             action={
               <Link to="/recommendations">
                 <Button variant="secondary" className="!py-2 !px-4 text-xs uppercase font-heading tracking-wider">
@@ -90,20 +90,20 @@ const Dashboard = () => {
             <Card hoverable>
               <CardHeader>
                 <div>
-                  <h3 className="font-extrabold text-[#111111] text-lg font-heading">National Merit Excellence Fellowship</h3>
-                  <p className="text-xs text-[#666666] font-medium">National Science & Education Council</p>
+                  <h3 className="font-extrabold text-[#111111] text-lg font-heading">Karnataka Post-Matric State Scholarship (SSP)</h3>
+                  <p className="text-xs text-[#666666] font-medium">Department of Higher Education, Govt of Karnataka</p>
                 </div>
                 <Badge variant="primary">98% Match</Badge>
               </CardHeader>
               <CardBody>
                 <p className="text-[#444444] text-xs leading-relaxed font-sans">
-                  Matches your 3.9 GPA score, undergraduate standing, and regional citizenship status.
+                  Matches your 9.2 CGPA score, BE/BTech student standing, and verified Karnataka domicile status.
                 </p>
               </CardBody>
               <CardFooter className="pt-4 border-t border-[#EEEEEE] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#888888] font-heading block">Annual Award</span>
-                  <span className="text-lg font-extrabold font-heading text-[#CD0000]">$25,000 / year</span>
+                  <span className="text-lg font-extrabold font-heading text-[#CD0000]">₹50,000 / year</span>
                 </div>
                 <Link to="/applications">
                   <Button variant="primary" className="!py-2 !px-4 text-xs uppercase font-heading tracking-wider">
@@ -116,20 +116,20 @@ const Dashboard = () => {
             <Card hoverable>
               <CardHeader>
                 <div>
-                  <h3 className="font-extrabold text-[#111111] text-lg font-heading">Global Technology Enterprise Grant</h3>
-                  <p className="text-xs text-[#666666] font-medium">Global Tech Foundation</p>
+                  <h3 className="font-extrabold text-[#111111] text-lg font-heading">Infosys Foundation Women in STEM Grant</h3>
+                  <p className="text-xs text-[#666666] font-medium">Infosys Foundation, Bengaluru</p>
                 </div>
                 <Badge variant="primary">95% Match</Badge>
               </CardHeader>
               <CardBody>
                 <p className="text-[#444444] text-xs leading-relaxed font-sans">
-                  Matches your Computer Science / STEM stream and transcript verification credentials.
+                  Matches your Computer Science stream and income certificate verification credentials.
                 </p>
               </CardBody>
               <CardFooter className="pt-4 border-t border-[#EEEEEE] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#888888] font-heading block">Total Grant</span>
-                  <span className="text-lg font-extrabold font-heading text-[#CD0000]">$15,000 total</span>
+                  <span className="text-lg font-extrabold font-heading text-[#CD0000]">₹1,50,000 / year</span>
                 </div>
                 <Link to="/applications">
                   <Button variant="primary" className="!py-2 !px-4 text-xs uppercase font-heading tracking-wider">
@@ -155,7 +155,7 @@ const Dashboard = () => {
                   Urgent Deadline
                 </span>
                 <p className="text-xs font-bold text-[#111111] leading-snug">
-                  Global Technology Enterprise Grant closes in 3 days. Upload pending recommendation letter.
+                  Karnataka Post-Matric SSP closes in 3 days. Complete e-attestation of marks card.
                 </p>
               </div>
 
@@ -164,7 +164,7 @@ const Dashboard = () => {
                   New High-Match Grant
                 </span>
                 <p className="text-xs font-bold text-[#111111] leading-snug">
-                  Newly verified STEM grant matches 92% of your student profile.
+                  Newly verified Infosys Foundation grant matches 95% of your profile.
                 </p>
               </div>
             </Card>

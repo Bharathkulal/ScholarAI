@@ -18,14 +18,14 @@ export const AdminLayout = () => {
       <Header onMenuClick={() => setIsMobileMenuOpen(true)} className="border-[#DDDDDD]" />
 
       {/* Main Container Shell */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      <div className="flex-1 flex app-container w-full">
         
         {/* Left Desktop Sidebar */}
         <AdminSidebar className="hidden lg:flex flex-shrink-0" />
 
         {/* Right Content Area */}
         <div className="flex-grow flex flex-col min-w-0">
-          <main className="flex-grow px-4 sm:px-6 lg:px-8 py-8">
+          <main className="flex-grow py-8 pl-0 lg:pl-8">
             <Breadcrumb />
             <div className="mt-4">
               <Outlet />

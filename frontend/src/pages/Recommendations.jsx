@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, BrainCircuit, RefreshCw } from 'lucide-react';
+import { BrainCircuit, RefreshCw } from 'lucide-react';
 import { PageTitle } from '../components/common/PageTitle';
 import { SectionHeader } from '../components/common/SectionHeader';
 import { Card } from '../components/ui/Card';
@@ -10,9 +10,9 @@ import { Grid } from '../components/common/Grid';
 import toast from 'react-hot-toast';
 
 const MOCK_RECOMMENDATIONS = [
-  { id: 1, title: 'Global Tech Innovators Fellowship', match: '98% Match', reason: 'High alignment with your 3.9 GPA score and STEM standing.', amount: '$25,000 / year' },
-  { id: 2, title: 'NextGen Women in Engineering Grant', match: '95% Match', reason: 'Matches female in STEM requirement and transcript credentials.', amount: '$15,000 total' },
-  { id: 3, title: 'Clean Energy & Sustainability Grant', match: '89% Match', reason: 'Matches postgraduate environmental research keywords.', amount: '$20,000 total' },
+  { id: 1, title: 'Karnataka Post-Matric State Scholarship (SSP)', match: '98% Match', reason: 'High alignment with your 9.2 CGPA score and Karnataka domicile status.', amount: '₹50,000 / year' },
+  { id: 2, title: 'Infosys Foundation Women in STEM Grant', match: '95% Match', reason: 'Matches female engineering student profile and annual family income criteria.', amount: '₹1,50,000 / year' },
+  { id: 3, title: 'Sir M. Visvesvaraya Merit Scholarship', match: '89% Match', reason: 'Matches Karnataka BE/BTech engineering college enrollment records.', amount: '₹1,00,000 total' },
 ];
 
 const Recommendations = () => {
@@ -29,15 +29,15 @@ const Recommendations = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      toast.success('AI recommendation profiles refreshed successfully!');
+      toast.success('AI recommendation profiles refreshed for SSP & Karnataka schemes!');
     }, 1200);
   };
 
   return (
     <div className="space-y-6 select-none">
       <PageTitle
-        title="AI Match Engine"
-        description="Our machine learning engine matches your academic credentials, social groups, and financial statements to discover the best funds."
+        title="AI Match Engine (Karnataka & India)"
+        description="Our machine learning engine matches your academic CGPA, Karnataka domicile status, category, and income certificate to discover the best schemes."
         action={
           <Button onClick={handleRecalculate} variant="secondary" className="!py-2 !px-4 text-xs font-heading uppercase tracking-wider">
             <RefreshCw className="w-3.5 h-3.5" />
@@ -48,7 +48,7 @@ const Recommendations = () => {
 
       {loading ? (
         <div className="space-y-4">
-          <SectionHeader title="Analyzing opportunities..." subtitle="Vector matching database schemas" />
+          <SectionHeader title="Analyzing opportunities..." subtitle="Vector matching SSP & NSP database schemas" />
           <Grid cols={1} md={3} gap={6}>
             <Skeleton variant="rect" height="180px" />
             <Skeleton variant="rect" height="180px" />
@@ -64,7 +64,7 @@ const Recommendations = () => {
             <div>
               <h4 className="text-base font-extrabold font-heading text-[#111111]">AI Neural Engine Status: Active Audit</h4>
               <p className="text-xs text-[#555555] font-sans leading-relaxed">
-                Matched 3 primary high-score scholarships from 14,500+ verified catalog records.
+                Matched 3 primary high-score Indian & Karnataka state scholarships from 14,500+ verified catalog records.
               </p>
             </div>
           </div>

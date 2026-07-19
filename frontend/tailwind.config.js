@@ -6,7 +6,19 @@ export default {
   ],
   darkMode: 'class',
   theme: {
+    screens: {
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1440px',
+      '3xl': '1600px',
+    },
     extend: {
+      maxWidth: {
+        '1600': '1600px',
+        '8xl': '1600px',
+      },
       colors: {
         cream: {
           DEFAULT: '#EFEDE6',

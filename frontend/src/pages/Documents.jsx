@@ -10,9 +10,9 @@ import { FolderOpen, FileCheck, FileWarning, Eye, Trash2, Plus, Upload } from 'l
 import toast from 'react-hot-toast';
 
 const MOCK_DOCUMENTS = [
-  { id: 1, name: 'Official Transcript 2026.pdf', type: 'Academic transcript', size: '1.4 MB', status: 'verified' },
-  { id: 2, name: 'Income Tax Return 2026.pdf', type: 'Financial statement', size: '890 KB', status: 'verified' },
-  { id: 3, name: 'Citizenship Identity Card.pdf', type: 'Demographic identity', size: '2.1 MB', status: 'pending' },
+  { id: 1, name: 'SSLC & PUC Marks Card 2026.pdf', type: 'Academic transcript', size: '1.4 MB', status: 'verified' },
+  { id: 2, name: 'Income & Caste Certificate 2026.pdf', type: 'Financial & caste statement', size: '890 KB', status: 'verified' },
+  { id: 3, name: 'Karnataka Domicile Certificate.pdf', type: 'State residency proof', size: '2.1 MB', status: 'pending' },
 ];
 
 const Documents = () => {
@@ -50,7 +50,7 @@ const Documents = () => {
     <div className="space-y-6 select-none">
       <PageTitle
         title="Encrypted Document Vault"
-        description="Organize and store transcripts, recommendation letters, and financial certificates in your secure cloud vault."
+        description="Organize and store SSLC/PUC marks cards, income & caste certificates, and Karnataka domicile proofs in your secure vault."
         action={
           <Button onClick={() => setIsModalOpen(true)} variant="primary" className="!py-2.5 !px-5 text-xs font-heading uppercase tracking-wider">
             <Plus className="w-4 h-4" />
@@ -116,7 +116,7 @@ const Documents = () => {
         <form onSubmit={handleUpload} className="space-y-4">
           <Input
             label="Document Name"
-            placeholder="e.g. Official Transcript 2026"
+            placeholder="e.g. Income Certificate 2026"
             value={newDocName}
             onChange={(e) => setNewDocName(e.target.value)}
             required
@@ -127,9 +127,9 @@ const Documents = () => {
             value={newDocType}
             onChange={(e) => setNewDocType(e.target.value)}
             options={[
-              { label: 'Academic Transcript', value: 'Academic transcript' },
-              { label: 'Financial Statement', value: 'Financial statement' },
-              { label: 'Demographic Identity', value: 'Demographic identity' },
+              { label: 'SSLC / PUC Academic Transcript', value: 'Academic transcript' },
+              { label: 'Income & Caste Certificate', value: 'Financial & caste statement' },
+              { label: 'Karnataka Domicile Proof', value: 'State residency proof' },
               { label: 'Supporting Certificate', value: 'Supporting certificate' },
             ]}
             required

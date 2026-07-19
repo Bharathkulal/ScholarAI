@@ -5,9 +5,9 @@ import Footer from '../components/common/Footer';
 
 export const PublicLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-250">
+    <div className="min-h-screen flex flex-col bg-[#EFEDE6] text-[#111111] transition-colors duration-250">
       <PublicNavbar />
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-grow w-full">
         <Outlet />
       </main>
       <Footer />

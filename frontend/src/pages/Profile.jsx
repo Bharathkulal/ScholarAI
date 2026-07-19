@@ -32,11 +32,11 @@ const Profile = () => {
   const methods = useForm({
     resolver: customResolver(profileSchema),
     defaultValues: {
-      fullName: user?.full_name || 'Jane Doe',
-      gpa: user?.gpa || '3.9',
-      income: user?.income || '$45,000 USD',
-      category: user?.category || 'General',
-      state: user?.state || 'California',
+      fullName: user?.full_name || 'Ananya Gowda',
+      gpa: user?.gpa || '9.2 CGPA',
+      income: user?.income || '₹2,40,000 / year',
+      category: user?.category || 'OBC (Cat-3A)',
+      state: user?.state || 'Karnataka',
     },
   });
 
@@ -47,8 +47,8 @@ const Profile = () => {
   return (
     <div className="space-y-6 max-w-3xl mx-auto select-none">
       <PageTitle
-        title="Student Academic Profile"
-        description="Verify and update your GPA scores, category descriptors, and income criteria for AI matching audits."
+        title="Student Academic Profile (Karnataka & India)"
+        description="Verify and update your CGPA scores, Karnataka category descriptors, and income criteria for AI matching audits."
       />
 
       <Card className="p-8">
@@ -62,8 +62,8 @@ const Profile = () => {
                 className="w-16 h-16 rounded-full object-cover border-2 border-[#CD0000]"
               />
               <div className="text-center sm:text-left">
-                <h4 className="text-xl font-extrabold font-heading text-[#111111]">{user?.full_name || 'Jane Doe'}</h4>
-                <p className="text-xs text-[#666666] font-medium font-heading">Verified Student ID: #SCH-29472</p>
+                <h4 className="text-xl font-extrabold font-heading text-[#111111]">{user?.full_name || 'Ananya Gowda'}</h4>
+                <p className="text-xs text-[#666666] font-medium font-heading">SSP Student ID: #KAR-29472</p>
               </div>
             </div>
 
@@ -77,33 +77,34 @@ const Profile = () => {
 
               <FormInput
                 name="gpa"
-                label="Academic GPA Score"
+                label="Academic CGPA Score"
                 icon={Award}
                 required
               />
 
               <FormInput
                 name="income"
-                label="Annual Household Income"
+                label="Annual Family Income (₹)"
                 icon={CreditCard}
                 required
               />
 
               <FormSelect
                 name="category"
-                label="Demographic Category"
+                label="Category / Caste Classification"
                 required
                 options={[
                   { label: 'General / Unreserved', value: 'General' },
+                  { label: 'OBC (Cat-1 / 2A / 2B / 3A / 3B)', value: 'OBC (Cat-3A)' },
+                  { label: 'SC (Scheduled Caste)', value: 'SC' },
+                  { label: 'ST (Scheduled Tribe)', value: 'ST' },
                   { label: 'Minority Scholarship', value: 'Minority' },
-                  { label: 'First-Generation College', value: 'FirstGen' },
-                  { label: 'Women in STEM', value: 'WomenInSTEM' },
                 ]}
               />
 
               <FormInput
                 name="state"
-                label="State / Region of Residency"
+                label="State of Domicile"
                 icon={MapPin}
                 required
               />

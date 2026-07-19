@@ -56,7 +56,7 @@ const AdminDashboard = () => {
             <Database className="w-4 h-4 text-[#CD0000]" />
           </div>
           <span className="text-4xl font-extrabold font-heading text-[#111111] block">142</span>
-          <span className="text-xs text-[#16A34A] font-heading font-bold mt-2 block">12 new corporate programs</span>
+          <span className="text-xs text-[#16A34A] font-heading font-bold mt-2 block">12 new Karnataka programs</span>
         </Card>
 
         <Card className="border-l-4 border-l-[#16A34A]">
@@ -73,7 +73,7 @@ const AdminDashboard = () => {
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#666666] font-heading">Disbursed Capital</span>
             <Award className="w-4 h-4 text-[#16A34A]" />
           </div>
-          <span className="text-4xl font-extrabold font-heading text-[#16A34A] block">$8.4M</span>
+          <span className="text-4xl font-extrabold font-heading text-[#16A34A] block">₹42.8 Cr</span>
           <span className="text-xs text-[#666666] font-heading font-medium mt-2 block">94.2% payout target hit</span>
         </Card>
       </Grid>
@@ -107,8 +107,8 @@ const AdminDashboard = () => {
             </h3>
             <div className="space-y-2 font-mono text-[11px] leading-relaxed max-h-[220px] overflow-y-auto bg-[#111111] text-[#CCCCCC] border border-[#222222] rounded-[16px] p-5">
               <p><span className="text-[#FF8080]">[INFO 10:24:12]</span> MongoDB Motor client ping response verified (12ms latency).</p>
-              <p><span className="text-[#FF8080]">[INFO 10:25:04]</span> AI Recommendation Engine pre-warmed for 120,000 active profiles.</p>
-              <p><span className="text-[#16A34A]">[POST 10:27:30]</span> Bulk import initialized. 142 schemes active.</p>
+              <p><span className="text-[#FF8080]">[INFO 10:25:04]</span> AI Recommendation Engine pre-warmed for 120,000 active Indian profiles.</p>
+              <p><span className="text-[#16A34A]">[POST 10:27:30]</span> Bulk import initialized. 142 Karnataka schemes active.</p>
               <p><span className="text-[#DC2626]">[WARN 10:28:15]</span> Access token refresh requested for active admin session.</p>
             </div>
           </Card>
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
         <form onSubmit={handlePublish} className="space-y-4">
           <Input
             label="Announcement Title"
-            placeholder="e.g. System Maintenance Window"
+            placeholder="e.g. SSP Karnataka Deadline Extension"
             value={announcementTitle}
             onChange={(e) => setAnnouncementTitle(e.target.value)}
             required
