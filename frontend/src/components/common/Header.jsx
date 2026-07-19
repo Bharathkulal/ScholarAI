@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Shield, ListCollapse } from 'lucide-react';
+import { LogOut, LayoutDashboard, Shield, ListCollapse, Search, Bell, Sparkles, Command } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Logo from './Logo';
 
-export const Header = ({ onMenuClick, className = '' }) => {
+export const Header = ({ onMenuClick, onAiAssistantClick, className = '' }) => {
   const { user, switchRole, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleRoleSelect = (e) => {
     const role = e.target.value;
@@ -25,12 +26,19 @@ export const Header = ({ onMenuClick, className = '' }) => {
     navigate('/');
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/scholarships?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   return (
     <header className={`sticky top-0 z-40 w-full bg-[#EFEDE6] border-b border-[#DDDDDD] transition-colors duration-200 ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="app-container h-20 flex items-center justify-between gap-4">
         
-        {/* Left: Mobile Menu Trigger + Logo */}
-        <div className="flex items-center gap-3">
+        {/* Left Zone: Mobile Menu Trigger + Logo */}
+        <div className="flex items-center gap-3 shrink-0">
           {onMenuClick && (
             <button
               onClick={onMenuClick}
@@ -43,16 +51,53 @@ export const Header = ({ onMenuClick, className = '' }) => {
           <Logo />
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-4">
+        {/* Center Zone: Quick Search Input (Desktop & Laptop) */}
+        <div className="hidden md:flex flex-1 max-w-md mx-4">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <Search className="w-4 h-4 text-[#888888] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search scholarships, programs, documents... (⌘K)"
+              className="w-full bg-white border border-[#DDDDDD] rounded-[16px] pl-10 pr-12 py-2 text-xs text-[#111111] focus:outline-none focus:border-[#CD0000] focus:ring-2 focus:ring-[#CD0000]/10 shadow-sm"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold font-heading uppercase text-[#888888] bg-[#EFEDE6] px-1.5 py-0.5 rounded border border-[#DDDDDD]">
+              ⌘K
+            </span>
+          </form>
+        </div>
+
+        {/* Right Zone: AI Assistant + Notifications + Role Switcher + User Profile */}
+        <div className="flex items-center gap-3 shrink-0">
           
+          {/* AI Assistant Button */}
+          <button
+            onClick={onAiAssistantClick}
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-[16px] bg-[#FFE5E5] border border-[#FFC9C9] text-[#CD0000] text-xs font-bold font-heading uppercase tracking-wider hover:bg-[#FFD6D6] transition-colors cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Assistant</span>
+          </button>
+
+          {/* Notifications Bell with Badge */}
+          <Link
+            to="/notifications"
+            className="relative p-2.5 rounded-[16px] bg-white border border-[#DDDDDD] text-[#111111] hover:bg-[#EFEDE6] transition-colors cursor-pointer"
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#CD0000] text-white text-[9px] font-extrabold flex items-center justify-center border-2 border-white">
+              3
+            </span>
+          </Link>
+
           {/* Quick Demo Role Switcher */}
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-[10px] font-bold font-heading uppercase text-[#666666] tracking-wider">Role Switcher:</span>
+          <div className="hidden lg:flex items-center gap-2">
             <select
               value={user?.role || ''}
               onChange={handleRoleSelect}
-              className="text-xs font-bold font-heading uppercase bg-white border border-[#DDDDDD] text-[#111111] rounded-[12px] px-3 py-1.5 focus:outline-none focus:border-[#CD0000] cursor-pointer shadow-sm"
+              className="text-xs font-bold font-heading uppercase bg-white border border-[#DDDDDD] text-[#111111] rounded-[14px] px-3 py-2 focus:outline-none focus:border-[#CD0000] cursor-pointer shadow-sm"
             >
               <option value="">Guest (Public)</option>
               <option value="student">Student Portal</option>
@@ -60,45 +105,34 @@ export const Header = ({ onMenuClick, className = '' }) => {
             </select>
           </div>
 
-          {/* User Section */}
+          {/* User Profile Info */}
           {user ? (
             <div className="flex items-center gap-3">
-              <Link
-                to={user.role === 'admin' ? '/admin' : '/dashboard'}
-                className="hidden md:flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors duration-150"
-              >
-                {user.role === 'admin' ? <Shield className="w-4 h-4 text-[#CD0000]" /> : <LayoutDashboard className="w-4 h-4 text-[#CD0000]" />}
-                {user.role === 'admin' ? 'Admin Portal' : 'Student Portal'}
+              <Link to="/profile" className="flex items-center gap-2.5 hover:opacity-90 bg-white border border-[#DDDDDD] p-1.5 pr-3.5 rounded-[16px] shadow-sm">
+                <img
+                  src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop'}
+                  alt={user.full_name}
+                  className="w-7 h-7 rounded-full border border-[#DDDDDD] object-cover shrink-0"
+                />
+                <span className="hidden xl:block text-xs font-extrabold uppercase tracking-wider font-heading text-[#111111]">
+                  {user.full_name.split(' ')[0]}
+                </span>
               </Link>
-              <div className="h-6 w-[1px] bg-[#DDDDDD] hidden md:block" />
-              
-              <div className="flex items-center gap-3">
-                <Link to="/profile" className="flex items-center gap-2 hover:opacity-90">
-                  <img
-                    src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop'}
-                    alt={user.full_name}
-                    className="w-8 h-8 rounded-full border border-[#DDDDDD] object-cover"
-                  />
-                  <span className="hidden lg:block text-xs font-bold uppercase tracking-wider font-heading text-[#111111]">
-                    {user.full_name.split(' ')[0]}
-                  </span>
-                </Link>
 
-                <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-xl text-[#DC2626] hover:bg-[#FFE5E5] transition-all duration-200 cursor-pointer"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2.5 rounded-[16px] text-[#DC2626] bg-white border border-[#DDDDDD] hover:bg-[#FFE5E5] transition-all duration-200 cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors duration-150 px-2 py-1">
+              <Link to="/login" className="text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors px-2 py-1">
                 Sign In
               </Link>
-              <Link to="/register" className="btn-primary !py-2 !px-4 text-xs font-heading uppercase tracking-wider">
+              <Link to="/register" className="btn-primary !py-2 !px-4 text-xs font-heading uppercase tracking-wider min-h-[44px]">
                 Get Started
               </Link>
             </div>

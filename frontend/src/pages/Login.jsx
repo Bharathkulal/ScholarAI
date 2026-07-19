@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
 import { Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { loadGoogleScript, fetchGoogleUserInfo } from '../utils/googleAuth';
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -61,6 +62,47 @@ const Login = () => {
     },
   });
 
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '950177095291-rcv6k6u1fiammaqpi9iolv01628j6gao.apps.googleusercontent.com';
+
+  const handleGoogleSignInClick = () => {
+    loadGoogleScript().then((google) => {
+      if (!google || !google.accounts?.oauth2) {
+        toast.error('Google Sign-In SDK is loading. Please try again.');
+        return;
+      }
+
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            toast.loading('Verifying Google Account credentials...', { id: 'google-login' });
+            const googleUserInfo = await fetchGoogleUserInfo(tokenResponse.access_token);
+            if (googleUserInfo && googleUserInfo.email) {
+              const googleProfile = {
+                email: googleUserInfo.email,
+                full_name: googleUserInfo.name || googleUserInfo.given_name || 'Google User',
+                avatar: googleUserInfo.picture,
+              };
+              await login(googleUserInfo.email, 'google_oauth', googleProfile);
+              toast.success(`Welcome, ${googleProfile.full_name}! Signed in via Google.`, { id: 'google-login' });
+              navigate('/dashboard');
+            } else {
+              toast.error('Could not retrieve Google profile details.', { id: 'google-login' });
+            }
+          } else if (tokenResponse.error) {
+            toast.error(`Google Sign-In Error: ${tokenResponse.error}`);
+          }
+        },
+        error_callback: (err) => {
+          console.error('Google OAuth Popup Error:', err);
+        }
+      });
+
+      client.requestAccessToken();
+    });
+  };
+
   const onSubmit = async (data) => {
     try {
       const profile = await login(data.email, data.password);
@@ -73,18 +115,6 @@ const Login = () => {
     } catch (e) {
       toast.error('Login failed. Please check credentials.');
     }
-  };
-
-  const handleGoogleSignIn = async () => {
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (googleClientId && googleClientId !== 'your_google_client_id_here') {
-      toast.success('Initializing Google Single Sign-On...');
-    } else {
-      toast.success('Signed in with Google OAuth successfully!');
-    }
-    const profile = await login('student@scholarai.com', 'student123');
-    toast.success(`Welcome, ${profile.full_name}!`);
-    navigate('/dashboard');
   };
 
   const handleQuickPrefill = (role) => {
@@ -122,7 +152,7 @@ const Login = () => {
       {/* Continue with Google Button */}
       <button
         type="button"
-        onClick={handleGoogleSignIn}
+        onClick={handleGoogleSignInClick}
         className="w-full min-h-[44px] py-3 px-4 rounded-[16px] bg-white border border-[#DDDDDD] hover:bg-[#EFEDE6] text-[#111111] font-heading font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-200 shadow-soft hover:shadow-lift cursor-pointer"
       >
         <GoogleIcon />

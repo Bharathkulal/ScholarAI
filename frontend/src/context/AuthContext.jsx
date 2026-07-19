@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
@@ -6,11 +6,11 @@ const MOCK_PROFILES = {
   student: {
     email: 'student@scholarai.com',
     role: 'student',
-    full_name: 'Amit Kumar',
-    gpa: '9.2',
-    income: '240,000 INR',
-    category: 'OBC',
-    state: 'Maharashtra',
+    full_name: 'Ananya Gowda',
+    gpa: '9.2 CGPA',
+    income: '₹2,40,000 / year',
+    category: 'OBC (Cat-3A)',
+    state: 'Karnataka',
     savedCount: 5,
     appliedCount: 2,
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
@@ -30,22 +30,30 @@ export const AuthProvider = ({ children }) => {
   });
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
 
-  const login = async (email, password) => {
-    // Simulated mock authentication logic
-    let mockProfile = null;
-    if (email.includes('admin')) {
-      mockProfile = MOCK_PROFILES.admin;
+  const login = async (email, password, customProfile = null) => {
+    let activeProfile = null;
+    if (customProfile) {
+      activeProfile = {
+        ...MOCK_PROFILES.student,
+        ...customProfile,
+        role: 'student',
+      };
+    } else if (email && email.includes('admin')) {
+      activeProfile = MOCK_PROFILES.admin;
     } else {
-      mockProfile = MOCK_PROFILES.student;
+      activeProfile = {
+        ...MOCK_PROFILES.student,
+        email: email || MOCK_PROFILES.student.email,
+      };
     }
 
-    const mockToken = `mock_jwt_token_${mockProfile.role}`;
+    const mockToken = `jwt_token_${activeProfile.role}_${Date.now()}`;
     localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockProfile));
+    localStorage.setItem('user', JSON.stringify(activeProfile));
     
-    setUser(mockProfile);
+    setUser(activeProfile);
     setToken(mockToken);
-    return mockProfile;
+    return activeProfile;
   };
 
   const logout = () => {
@@ -62,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     }
     const profile = MOCK_PROFILES[role];
     if (profile) {
-      const mockToken = `mock_jwt_token_${role}`;
+      const mockToken = `jwt_token_${role}_${Date.now()}`;
       localStorage.setItem('token', mockToken);
       localStorage.setItem('user', JSON.stringify(profile));
       setUser(profile);
