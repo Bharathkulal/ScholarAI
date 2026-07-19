@@ -1,85 +1,156 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import {
+  loginApi,
+  registerApi,
+  getMeApi,
+  refreshTokenApi,
+  logoutApi,
+  googleLoginApi,
+  updateProfileApi,
+} from '../services/auth';
 
 export const AuthContext = createContext();
 
-const MOCK_PROFILES = {
-  student: {
-    email: 'student@scholarai.com',
-    role: 'student',
-    full_name: 'Ananya Gowda',
-    gpa: '9.2 CGPA',
-    income: '₹2,40,000 / year',
-    category: 'OBC (Cat-3A)',
-    state: 'Karnataka',
-    savedCount: 5,
-    appliedCount: 2,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
-  },
-  admin: {
-    email: 'admin@scholarai.com',
-    role: 'admin',
-    full_name: 'Dr. Rajesh Sharma',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop'
-  }
-};
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
-
-  const login = async (email, password, customProfile = null) => {
-    let activeProfile = null;
-    if (customProfile) {
-      activeProfile = {
-        ...MOCK_PROFILES.student,
-        ...customProfile,
-        role: 'student',
-      };
-    } else if (email && email.includes('admin')) {
-      activeProfile = MOCK_PROFILES.admin;
-    } else {
-      activeProfile = {
-        ...MOCK_PROFILES.student,
-        email: email || MOCK_PROFILES.student.email,
-      };
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
     }
+  });
 
-    const mockToken = `jwt_token_${activeProfile.role}_${Date.now()}`;
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(activeProfile));
-    
-    setUser(activeProfile);
-    setToken(mockToken);
-    return activeProfile;
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [loading, setLoading] = useState(true);
+
+  // Synchronize authentication tokens & local storage
+  const saveAuthSession = (userData, tokens) => {
+    const accessToken = tokens.access_token;
+    const refreshToken = tokens.refresh_token;
+
+    localStorage.setItem('token', accessToken);
+    if (refreshToken) {
+      localStorage.setItem('refresh_token', refreshToken);
+    }
+    localStorage.setItem('user', JSON.stringify(userData));
+
+    setToken(accessToken);
+    setUser(userData);
   };
 
-  const logout = () => {
+  const clearAuthSession = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-    setUser(null);
     setToken(null);
+    setUser(null);
   };
 
-  const switchRole = (role) => {
-    if (!role) {
-      logout();
+  // Restore authenticated session on application mount
+  const checkAuth = useCallback(async () => {
+    const savedToken = localStorage.getItem('token');
+    const savedRefreshToken = localStorage.getItem('refresh_token');
+
+    if (!savedToken) {
+      setLoading(false);
       return;
     }
-    const profile = MOCK_PROFILES[role];
-    if (profile) {
-      const mockToken = `jwt_token_${role}_${Date.now()}`;
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(profile));
-      setUser(profile);
-      setToken(mockToken);
+
+    try {
+      const res = await getMeApi();
+      if (res && res.user) {
+        setUser(res.user);
+        localStorage.setItem('user', JSON.stringify(res.user));
+      }
+    } catch (error) {
+      // Attempt token refresh if initial fetch fails
+      if (savedRefreshToken) {
+        try {
+          const refreshRes = await refreshTokenApi(savedRefreshToken);
+          if (refreshRes && refreshRes.access_token) {
+            localStorage.setItem('token', refreshRes.access_token);
+            setToken(refreshRes.access_token);
+            
+            const userRes = await getMeApi();
+            if (userRes && userRes.user) {
+              setUser(userRes.user);
+              localStorage.setItem('user', JSON.stringify(userRes.user));
+            }
+          } else {
+            clearAuthSession();
+          }
+        } catch (refreshErr) {
+          clearAuthSession();
+        }
+      } else {
+        clearAuthSession();
+      }
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Login with email & password
+  const login = async (email, password) => {
+    const res = await loginApi({ email, password });
+    const { user: userData, tokens } = res;
+    saveAuthSession(userData, tokens);
+    return userData;
+  };
+
+  // Register new student account
+  const register = async (userData) => {
+    const res = await registerApi(userData);
+    const { user: createdUser, tokens } = res;
+    saveAuthSession(createdUser, tokens);
+    return createdUser;
+  };
+
+  // Google OAuth sign in
+  const googleLogin = async (googlePayload) => {
+    const res = await googleLoginApi(googlePayload);
+    const { user: userData, tokens } = res;
+    saveAuthSession(userData, tokens);
+    return userData;
+  };
+
+  // Update student profile
+  const updateUserProfile = async (profileData) => {
+    const res = await updateProfileApi(profileData);
+    if (res && res.profile) {
+      setUser(res.profile);
+      localStorage.setItem('user', JSON.stringify(res.profile));
+      return res.profile;
+    }
+    return user;
+  };
+
+  // Logout current session
+  const logout = async () => {
+    const refreshToken = localStorage.getItem('refresh_token');
+    await logoutApi(refreshToken);
+    clearAuthSession();
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout, switchRole }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token && !!user,
+        loading,
+        login,
+        register,
+        googleLogin,
+        logout,
+        updateUserProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -17,18 +17,11 @@ async def create_indexes() -> None:
     logger.info("Initializing database index verification...")
 
     try:
-        # Example: Index for users collection (unique email constraint)
-        # users_indexes = [
-        #     IndexModel([("email", ASCENDING)], unique=True, name="idx_user_email_unique")
-        # ]
-        # await db.users.create_indexes(users_indexes)
-        
-        # Example: Index for scholarships collection (text search index)
-        # scholarship_indexes = [
-        #     IndexModel([("title", TEXT), ("description", TEXT)], name="idx_scholarship_text_search"),
-        #     IndexModel([("deadline", ASCENDING)], name="idx_scholarship_deadline")
-        # ]
-        # await db.scholarships.create_indexes(scholarship_indexes)
+        users_indexes = [
+            IndexModel([("email", ASCENDING)], unique=True, name="idx_user_email_unique")
+        ]
+        await db.users.create_indexes(users_indexes)
+
 
         logger.info("Database index validation complete.")
     except Exception as e:

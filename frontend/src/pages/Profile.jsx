@@ -27,21 +27,32 @@ const customResolver = (schema) => async (values) => {
 };
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
 
   const methods = useForm({
     resolver: customResolver(profileSchema),
-    defaultValues: {
-      fullName: user?.full_name || 'Ananya Gowda',
-      gpa: user?.gpa || '9.2 CGPA',
+    values: {
+      fullName: user?.full_name || '',
+      gpa: user?.cgpa || user?.gpa || '9.2 CGPA',
       income: user?.income || '₹2,40,000 / year',
       category: user?.category || 'OBC (Cat-3A)',
       state: user?.state || 'Karnataka',
     },
   });
 
-  const onSubmit = () => {
-    toast.success('Profile credentials updated successfully!');
+  const onSubmit = async (data) => {
+    try {
+      await updateUserProfile({
+        full_name: data.fullName,
+        cgpa: data.gpa,
+        income: data.income,
+        category: data.category,
+        state: data.state,
+      });
+      toast.success('Profile credentials updated successfully!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to update profile.');
+    }
   };
 
   return (
@@ -62,8 +73,10 @@ const Profile = () => {
                 className="w-16 h-16 rounded-full object-cover border-2 border-[#CD0000]"
               />
               <div className="text-center sm:text-left">
-                <h4 className="text-xl font-extrabold font-heading text-[#111111]">{user?.full_name || 'Ananya Gowda'}</h4>
-                <p className="text-xs text-[#666666] font-medium font-heading">SSP Student ID: #KAR-29472</p>
+                <h4 className="text-xl font-extrabold font-heading text-[#111111]">{user?.full_name || 'Student User'}</h4>
+                <p className="text-xs text-[#666666] font-medium font-heading">
+                  SSP Student ID: #{user?._id?.slice(-8) || user?.id?.slice(-8) || 'KAR-29472'}
+                </p>
               </div>
             </div>
 
@@ -114,7 +127,7 @@ const Profile = () => {
               <Button type="button" variant="secondary" onClick={() => methods.reset()}>
                 Reset Fields
               </Button>
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" isLoading={methods.formState.isSubmitting}>
                 Save Profile Preferences
               </Button>
             </div>

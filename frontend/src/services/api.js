@@ -40,11 +40,13 @@ api.interceptors.response.use(
     // Auto-logout user on authentication expiration or invalid signatures
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login?session_expired=true';
       }
     }
+
 
     return Promise.reject(customError);
   }

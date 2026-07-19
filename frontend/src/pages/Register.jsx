@@ -48,7 +48,7 @@ const customResolver = (schema) => async (values) => {
 };
 
 const Register = () => {
-  const { login } = useAuth();
+  const { register: registerUser, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const methods = useForm({
@@ -78,14 +78,18 @@ const Register = () => {
             toast.loading('Verifying Google Account credentials...', { id: 'google-login' });
             const googleUserInfo = await fetchGoogleUserInfo(tokenResponse.access_token);
             if (googleUserInfo && googleUserInfo.email) {
-              const googleProfile = {
-                email: googleUserInfo.email,
-                full_name: googleUserInfo.name || googleUserInfo.given_name || 'Google User',
-                avatar: googleUserInfo.picture,
-              };
-              await login(googleUserInfo.email, 'google_oauth', googleProfile);
-              toast.success(`Welcome, ${googleProfile.full_name}! Signed in via Google.`, { id: 'google-login' });
-              navigate('/dashboard');
+              try {
+                const profile = await googleLogin({
+                  email: googleUserInfo.email,
+                  full_name: googleUserInfo.name || googleUserInfo.given_name || 'Google User',
+                  avatar: googleUserInfo.picture,
+                  access_token: tokenResponse.access_token,
+                });
+                toast.success(`Welcome to ScholarAI, ${profile.full_name}!`, { id: 'google-login' });
+                navigate('/dashboard');
+              } catch (err) {
+                toast.error(err.message || 'Google registration failed.', { id: 'google-login' });
+              }
             } else {
               toast.error('Could not retrieve Google profile details.', { id: 'google-login' });
             }
@@ -104,12 +108,15 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
-      toast.success('Registration successful!');
-      const profile = await login(data.email, data.password);
-      toast.success(`Welcome to ScholarAI, ${profile.full_name}!`);
+      const profile = await registerUser({
+        email: data.email,
+        password: data.password,
+        full_name: data.fullName,
+      });
+      toast.success(`Welcome to ScholarAI, ${profile.full_name}! Account registered.`);
       navigate('/dashboard');
     } catch (e) {
-      toast.error('Registration failed.');
+      toast.error(e.message || 'Registration failed. Please check inputs.');
     }
   };
 

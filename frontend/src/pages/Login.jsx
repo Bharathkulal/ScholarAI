@@ -49,7 +49,7 @@ const customResolver = (schema) => async (values) => {
 };
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionExpired = searchParams.get('session_expired');
@@ -79,14 +79,22 @@ const Login = () => {
             toast.loading('Verifying Google Account credentials...', { id: 'google-login' });
             const googleUserInfo = await fetchGoogleUserInfo(tokenResponse.access_token);
             if (googleUserInfo && googleUserInfo.email) {
-              const googleProfile = {
-                email: googleUserInfo.email,
-                full_name: googleUserInfo.name || googleUserInfo.given_name || 'Google User',
-                avatar: googleUserInfo.picture,
-              };
-              await login(googleUserInfo.email, 'google_oauth', googleProfile);
-              toast.success(`Welcome, ${googleProfile.full_name}! Signed in via Google.`, { id: 'google-login' });
-              navigate('/dashboard');
+              try {
+                const profile = await googleLogin({
+                  email: googleUserInfo.email,
+                  full_name: googleUserInfo.name || googleUserInfo.given_name || 'Google User',
+                  avatar: googleUserInfo.picture,
+                  access_token: tokenResponse.access_token,
+                });
+                toast.success(`Welcome, ${profile.full_name}! Signed in via Google.`, { id: 'google-login' });
+                if (profile.role === 'admin' || profile.role === 'superadmin') {
+                  navigate('/admin');
+                } else {
+                  navigate('/dashboard');
+                }
+              } catch (err) {
+                toast.error(err.message || 'Google authentication failed.', { id: 'google-login' });
+              }
             } else {
               toast.error('Could not retrieve Google profile details.', { id: 'google-login' });
             }
@@ -107,13 +115,13 @@ const Login = () => {
     try {
       const profile = await login(data.email, data.password);
       toast.success(`Welcome back, ${profile.full_name}!`);
-      if (profile.role === 'admin') {
+      if (profile.role === 'admin' || profile.role === 'superadmin') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     } catch (e) {
-      toast.error('Login failed. Please check credentials.');
+      toast.error(e.message || 'Login failed. Please check credentials.');
     }
   };
 
