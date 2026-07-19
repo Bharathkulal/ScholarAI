@@ -1,0 +1,93 @@
+import jwt
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Any, List, Optional
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
+
+from app.core.config import settings
+
+# Initialize password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# OAuth2 Scheme definition
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_PREFIX}/auth/login",
+    auto_error=False  # Allow endpoints to handle non-authenticated access if needed
+)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifies if the plain password matches the hashed password."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Generates a secure bcrypt hash of the plain password."""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Generates an encrypted JWT access token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    return encoded_jwt
+
+def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
+    """Decodes a JWT access token, returning its payload. Returns None if invalid."""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        return None
+
+async def get_current_user(token: Optional[str] = Depends(oauth2_scheme)) -> Dict[str, Any]:
+    """
+    Placeholder security dependency to retrieve the authenticated user.
+    To be hooked up to DB repositories in the authentication task.
+    """
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Return placeholder authenticated user
+    return {
+        "id": payload.get("sub"),
+        "email": payload.get("email"),
+        "role": payload.get("role", "student"),
+        "is_active": True
+    }
+
+async def get_current_active_user(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+    """Ensures the authenticated user account is active."""
+    if not current_user.get("is_active"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user account"
+        )
+    return current_user
+
+class RoleChecker:
+    """Dependency checking if the authenticated user has one of the allowed roles."""
+    def __init__(self, allowed_roles: List[str]):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, current_user: Dict[str, Any] = Depends(get_current_active_user)) -> Dict[str, Any]:
+        if current_user.get("role") not in self.allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have authorization to perform this action."
+            )
+        return current_user

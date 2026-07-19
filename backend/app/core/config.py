@@ -4,21 +4,26 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "ScholarAI"
-    API_V1_STR: str = "/api/v1"
-    PORT: int = 8000
+    APP_NAME: str = "ScholarAI"
+    APP_VERSION: str = "1.0.0"
+    APP_ENV: str = "development"
     HOST: str = "0.0.0.0"
-    ENVIRONMENT: str = "development"
+    PORT: int = 8000
+    
+    # API Versioning Prefix
+    API_PREFIX: str = "/api/v1"
     
     # Security Configurations
-    SECRET_KEY: str = "temporary_secret_key_for_development_needs_to_be_overridden_in_production"
+    JWT_SECRET: str = "temporary_secret_key_for_development_needs_to_be_overridden_in_production"
+    JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Database Configurations
-    MONGODB_URI: str = "mongodb://localhost:27017/scholarai"
+    MONGODB_URI: str = "mongodb://localhost:27017"
+    DATABASE_NAME: str = "scholarai"
     
     # CORS Configurations
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173"]
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
