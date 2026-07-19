@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.repositories.base import BaseRepository
@@ -54,7 +54,84 @@ class UserRepository(BaseRepository):
             "last_login": None,
             "google_id": user_data.get("google_id"),
             "provider": user_data.get("provider", "email"),
-            "profile_completion": user_data.get("profile_completion", 40),
+            "profile_completion": {
+                "personal": 40,
+                "academic": 0,
+                "family": 0,
+                "eligibility": 0,
+                "documents": 0,
+                "timeline": 0,
+                "skills": 0,
+                "overall": 20
+            },
+            "personal": {
+                "full_name": user_data.get("full_name"),
+                "email": user_data.get("email"),
+                "phone": user_data.get("phone"),
+                "gender": user_data.get("gender"),
+                "dob": user_data.get("dob"),
+                "avatar": user_data.get("avatar"),
+                "address": {
+                    "state": user_data.get("state"),
+                    "district": user_data.get("district"),
+                    "taluk": None,
+                    "village_city": None,
+                    "pin_code": None
+                }
+            },
+            "academic": {
+                "college_name": user_data.get("college"),
+                "university": None,
+                "course": user_data.get("course"),
+                "branch": None,
+                "semester": user_data.get("semester"),
+                "current_year": None,
+                "roll_number": None,
+                "registration_number": None,
+                "cgpa": user_data.get("cgpa"),
+                "percentage": None,
+                "sslc_percentage": None,
+                "puc_percentage": None,
+                "backlogs": 0,
+                "expected_graduation": None
+            },
+            "family": {
+                "father_name": None,
+                "mother_name": None,
+                "guardian": None,
+                "occupation": None,
+                "annual_income": user_data.get("income"),
+                "bpl_status": "No",
+                "ration_card_type": None
+            },
+            "eligibility": {
+                "category": user_data.get("category"),
+                "religion": None,
+                "nationality": "Indian",
+                "state": user_data.get("state"),
+                "domicile": user_data.get("state"),
+                "disability": "No",
+                "ncc": "No",
+                "sports_quota": "No",
+                "farmer_family": "No",
+                "single_girl_child": "No",
+                "orphan": "No",
+                "ex_serviceman": "No",
+                "hosteller_day_scholar": "Hosteller"
+            },
+            "documents": [],
+            "timeline": [],
+            "skills": {
+                "programming_skills": [],
+                "languages": [],
+                "projects": [],
+                "internships": [],
+                "certifications": [],
+                "hackathons": [],
+                "sports": [],
+                "achievements": [],
+                "volunteer_work": []
+            },
             "refresh_tokens": [],
             "savedCount": 0,
             "appliedCount": 0,
@@ -112,3 +189,63 @@ class UserRepository(BaseRepository):
                     "reset_password_expires": ""
                 }}
             )
+
+    async def add_user_document(self, user_id: str, doc_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        if not self.collection or not ObjectId.is_valid(user_id):
+            return None
+        from pymongo import ReturnDocument
+        return await self.collection.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {
+                "$push": {"documents": doc_item},
+                "$set": {"updated_at": datetime.now(timezone.utc)}
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+    async def delete_user_document(self, user_id: str, doc_id: str) -> Optional[Dict[str, Any]]:
+        if not self.collection or not ObjectId.is_valid(user_id):
+            return None
+        from pymongo import ReturnDocument
+        return await self.collection.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {
+                "$pull": {"documents": {"id": doc_id}},
+                "$set": {"updated_at": datetime.now(timezone.utc)}
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+    async def update_document_status(
+        self, user_id: str, doc_id: str, status_val: str, rejection_reason: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        if not self.collection or not ObjectId.is_valid(user_id):
+            return None
+        from pymongo import ReturnDocument
+        return await self.collection.find_one_and_update(
+            {"_id": ObjectId(user_id), "documents.id": doc_id},
+            {
+                "$set": {
+                    "documents.$.status": status_val,
+                    "documents.$.rejection_reason": rejection_reason,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            },
+            return_document=ReturnDocument.AFTER
+        )
+
+    async def update_avatar(self, user_id: str, avatar_url: str) -> Optional[Dict[str, Any]]:
+        if not self.collection or not ObjectId.is_valid(user_id):
+            return None
+        from pymongo import ReturnDocument
+        return await self.collection.find_one_and_update(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "avatar": avatar_url,
+                    "personal.avatar": avatar_url,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            },
+            return_document=ReturnDocument.AFTER
+        )

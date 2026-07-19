@@ -1,9 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+import os
+
 
 from app.core.config import settings
 from app.core.logging import setup_logging
@@ -62,6 +65,12 @@ app.add_middleware(
 app.add_exception_handler(Exception, global_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
+# Mount Static Uploads Directory
+uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
 
 # Root-level health and info APIs
 @app.get("/", tags=["Info"])
