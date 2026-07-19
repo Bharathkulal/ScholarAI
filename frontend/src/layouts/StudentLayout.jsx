@@ -5,6 +5,7 @@ import StudentSidebar from '../components/navigation/StudentSidebar';
 import MobileNavigation from '../components/navigation/MobileNavigation';
 import Breadcrumb from '../components/navigation/Breadcrumb';
 import Footer from '../components/common/Footer';
+import { AIChatDrawer } from '../components/ai/AIChatDrawer';
 import { useAuth } from '../hooks/useAuth';
 
 export const StudentLayout = () => {
@@ -36,6 +37,9 @@ export const StudentLayout = () => {
         </div>
       </div>
 
+      {/* Floating AI Grounded Assistant Chat Drawer */}
+      <AIChatDrawer />
+
       {/* Mobile Drawer Navigation */}
       <MobileNavigation
         isOpen={isMobileMenuOpen}
@@ -45,4 +49,5 @@ export const StudentLayout = () => {
     </div>
   );
 };
+
 export default StudentLayout;
