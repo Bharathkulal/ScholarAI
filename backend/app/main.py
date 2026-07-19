@@ -7,9 +7,10 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import os
 
-
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.core.security_headers import SecurityHeadersMiddleware
+from app.core.rate_limiter import RateLimiterMiddleware
 from app.database.mongodb import db_manager, get_database
 from app.database.indexes import create_indexes
 from app.middleware.error_handler import (
@@ -49,10 +50,12 @@ app = FastAPI(
     redoc_url="/redoc" if settings.APP_ENV != "production" else None,
 )
 
-# Request logging middleware
+# Security & Rate Limiting Middleware
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimiterMiddleware, max_requests=120, window_seconds=60)
 app.add_middleware(RequestLoggingMiddleware)
 
-# CORS middleware
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -61,7 +64,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Exception handlers
+# Exception Handlers
 app.add_exception_handler(Exception, global_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
@@ -71,14 +74,14 @@ uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"
 os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
-
 # Root-level health and info APIs
 @app.get("/", tags=["Info"])
 async def get_project_status():
     """Retrieve basic service branding and running confirmation."""
     return {
         "project": f"{settings.APP_NAME} API",
-        "status": "Running"
+        "status": "Running",
+        "version": settings.APP_VERSION
     }
 
 @app.get("/health", tags=["Health"])

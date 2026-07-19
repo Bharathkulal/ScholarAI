@@ -1,16 +1,14 @@
 import jwt
+import bcrypt
+import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.config import settings
 from app.database.mongodb import get_database
-
-# Initialize password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 Scheme definition
 oauth2_scheme = OAuth2PasswordBearer(
@@ -19,14 +17,22 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifies if the plain password matches the hashed password."""
-    if not hashed_password:
+    """Verifies if the plain password matches the bcrypt hashed password."""
+    if not hashed_password or not plain_password:
         return False
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Pre-hash with SHA-256 digest to safely handle any length under 72-byte limit
+        sha_digest = hashlib.sha256(plain_password.encode("utf-8")).hexdigest().encode("utf-8")
+        return bcrypt.checkpw(sha_digest, hashed_password.encode("utf-8"))
+    except Exception:
+        return False
 
 def get_password_hash(password: str) -> str:
     """Generates a secure bcrypt hash of the plain password."""
-    return pwd_context.hash(password)
+    sha_digest = hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8")
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(sha_digest, salt)
+    return hashed.decode("utf-8")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Generates an encrypted JWT access token."""
