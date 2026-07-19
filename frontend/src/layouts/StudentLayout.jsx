@@ -12,7 +12,7 @@ export const StudentLayout = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#EFEDE6] text-[#111111] transition-colors duration-200">
       
       {/* Top Header */}
       <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
@@ -25,9 +25,9 @@ export const StudentLayout = () => {
 
         {/* Right Content Area */}
         <div className="flex-grow flex flex-col min-w-0">
-          <main className="flex-grow px-4 sm:px-6 lg:px-8 py-6">
+          <main className="flex-grow px-4 sm:px-6 lg:px-8 py-8">
             <Breadcrumb />
-            <div className="mt-2">
+            <div className="mt-4">
               <Outlet />
             </div>
           </main>

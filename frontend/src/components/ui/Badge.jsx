@@ -5,14 +5,16 @@ export const Badge = ({
   variant = 'primary',
   className = '',
 }) => {
-  const baseStyle = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold select-none border";
+  const baseStyle = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold select-none border tracking-wide font-heading";
 
   const variants = {
-    primary: "bg-primary-50 text-primary-700 border-primary-200 dark:bg-primary-950/20 dark:text-primary-400 dark:border-primary-900/30",
-    secondary: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-250 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30",
-    warning: "bg-amber-50 text-amber-700 border-amber-250 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30",
-    danger: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30",
+    primary: "bg-[#FFE5E5] text-[#CD0000] border-[#FFC9C9]",
+    cherry: "bg-[#CD0000] text-white border-transparent",
+    secondary: "bg-[#EFEDE6] text-[#111111] border-[#DDDDDD]",
+    outline: "bg-white text-[#111111] border-[#DDDDDD]",
+    success: "bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]",
+    warning: "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]",
+    danger: "bg-[#FEF2F2] text-[#DC2626] border-[#FCA5A5]",
   };
 
   const currentVariant = variants[variant] || variants.primary;

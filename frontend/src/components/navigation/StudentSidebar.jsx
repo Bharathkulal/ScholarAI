@@ -24,10 +24,17 @@ const SIDEBAR_ITEMS = [
 
 export const StudentSidebar = ({ className = '', onItemClick }) => {
   return (
-    <aside className={`w-[260px] bg-white dark:bg-slate-900 border-r border-slate-205 dark:border-slate-800 h-full flex flex-col pt-6 transition-colors duration-200 ${className}`}>
+    <aside className={`w-[260px] bg-[#111111] text-white border-r border-[#222222] h-full flex flex-col pt-6 ${className}`}>
       
+      {/* Sidebar Label Header */}
+      <div className="px-6 mb-4">
+        <span className="text-[10px] font-extrabold uppercase tracking-widest font-heading text-[#888888]">
+          Student Portal
+        </span>
+      </div>
+
       {/* Navigation List */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
@@ -36,14 +43,14 @@ export const StudentSidebar = ({ className = '', onItemClick }) => {
               to={item.path}
               onClick={onItemClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 select-none ${
+                `flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider font-heading rounded-[16px] transition-all duration-200 select-none ${
                   isActive
-                    ? 'bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'
-                    : 'text-slate-550 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-[#CD0000] text-white shadow-[0_4px_14px_rgba(205,0,0,0.35)]'
+                    : 'text-[#AAAAAA] hover:bg-[#222222] hover:text-white'
                 }`
               }
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{item.label}</span>
             </NavLink>
           );
@@ -51,8 +58,8 @@ export const StudentSidebar = ({ className = '', onItemClick }) => {
       </nav>
       
       {/* Footer Info */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-center text-[10px] text-slate-400">
-        ScholarAI Student Portal v1.0.0
+      <div className="p-4 border-t border-[#222222] text-center text-[10px] text-[#666666] font-heading uppercase tracking-widest">
+        ScholarAI Portal v1.0.0
       </div>
     </aside>
   );

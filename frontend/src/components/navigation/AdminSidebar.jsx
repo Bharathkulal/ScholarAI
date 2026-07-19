@@ -22,17 +22,17 @@ const ADMIN_SIDEBAR_ITEMS = [
 
 export const AdminSidebar = ({ className = '', onItemClick }) => {
   return (
-    <aside className={`w-[260px] bg-white dark:bg-slate-900 border-r border-slate-205 dark:border-slate-800 h-full flex flex-col pt-6 transition-colors duration-200 ${className}`}>
+    <aside className={`w-[260px] bg-[#111111] text-white border-r border-[#222222] h-full flex flex-col pt-6 ${className}`}>
       
       {/* Admin Indicator */}
       <div className="px-6 mb-6">
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl px-3 py-2 text-center text-xs font-bold text-red-600 dark:text-red-400 select-none">
-          SYSTEM ADMINISTRATOR
+        <div className="bg-[#CD0000] text-white rounded-[16px] px-3.5 py-2 text-center text-[10px] font-extrabold tracking-widest uppercase font-heading shadow-[0_4px_12px_rgba(205,0,0,0.3)]">
+          System Control Console
         </div>
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         {ADMIN_SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
@@ -41,14 +41,14 @@ export const AdminSidebar = ({ className = '', onItemClick }) => {
               to={item.path}
               onClick={onItemClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 select-none ${
+                `flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider font-heading rounded-[16px] transition-all duration-200 select-none ${
                   isActive
-                    ? 'bg-red-50 dark:bg-red-950/25 text-red-655 dark:text-red-400'
-                    : 'text-slate-550 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-[#CD0000] text-white shadow-[0_4px_14px_rgba(205,0,0,0.35)]'
+                    : 'text-[#AAAAAA] hover:bg-[#222222] hover:text-white'
                 }`
               }
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{item.label}</span>
             </NavLink>
           );
@@ -56,7 +56,7 @@ export const AdminSidebar = ({ className = '', onItemClick }) => {
       </nav>
       
       {/* Footer Info */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-center text-[10px] text-slate-400">
+      <div className="p-4 border-t border-[#222222] text-center text-[10px] text-[#666666] font-heading uppercase tracking-widest">
         ScholarAI Control Console v1.0.0
       </div>
     </aside>

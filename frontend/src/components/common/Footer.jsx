@@ -4,27 +4,31 @@ import Logo from './Logo';
 
 export const Footer = ({ className = '' }) => {
   return (
-    <footer className={`bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors duration-200 ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-200 dark:border-slate-800 pb-8">
+    <footer className={`bg-[#EFEDE6] border-t border-[#DDDDDD] transition-colors duration-200 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-[#DDDDDD] pb-8">
           <Logo />
-          <nav className="flex flex-wrap justify-center gap-6">
-            <Link to="/scholarships" className="text-sm font-semibold text-slate-500 hover:text-primary-650 dark:text-slate-400 dark:hover:text-primary-400">
+          <nav className="flex flex-wrap justify-center gap-8">
+            <Link to="/scholarships" className="text-xs font-bold uppercase tracking-wider font-heading text-[#555555] hover:text-[#CD0000] transition-colors">
               Browse Scholarships
             </Link>
-            <Link to="/recommendations" className="text-sm font-semibold text-slate-500 hover:text-primary-650 dark:text-slate-400 dark:hover:text-primary-400">
-              AI Recommendations
+            <Link to="/recommendations" className="text-xs font-bold uppercase tracking-wider font-heading text-[#555555] hover:text-[#CD0000] transition-colors">
+              AI Match Engine
             </Link>
-            <Link to="/settings" className="text-sm font-semibold text-slate-500 hover:text-primary-650 dark:text-slate-400 dark:hover:text-primary-400">
-              Support
+            <Link to="/applications" className="text-xs font-bold uppercase tracking-wider font-heading text-[#555555] hover:text-[#CD0000] transition-colors">
+              Applications
+            </Link>
+            <Link to="/settings" className="text-xs font-bold uppercase tracking-wider font-heading text-[#555555] hover:text-[#CD0000] transition-colors">
+              Settings & Support
             </Link>
           </nav>
         </div>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 text-xs text-slate-400 dark:text-slate-500">
-          <p>&copy; {new Date().getFullYear()} ScholarAI. All rights reserved. Discover. Qualify. Apply.</p>
-          <div className="flex gap-4">
-            <a href="#" className="hover:underline">Privacy Policy</a>
-            <a href="#" className="hover:underline">Terms of Service</a>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 text-xs text-[#666666] font-heading font-medium">
+          <p>&copy; {new Date().getFullYear()} ScholarAI. All rights reserved. <span className="text-[#CD0000] font-bold">Discover. Qualify. Apply.</span></p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-[#111111] transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-[#111111] transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-[#111111] transition-colors">Security Audit</a>
           </div>
         </div>
       </div>

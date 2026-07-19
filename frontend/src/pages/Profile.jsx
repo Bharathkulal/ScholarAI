@@ -32,42 +32,42 @@ const Profile = () => {
   const methods = useForm({
     resolver: customResolver(profileSchema),
     defaultValues: {
-      fullName: user?.full_name || 'Amit Kumar',
-      gpa: user?.gpa || '9.2',
-      income: user?.income || '240,000 INR',
-      category: user?.category || 'OBC',
-      state: user?.state || 'Maharashtra',
+      fullName: user?.full_name || 'Jane Doe',
+      gpa: user?.gpa || '3.9',
+      income: user?.income || '$45,000 USD',
+      category: user?.category || 'General',
+      state: user?.state || 'California',
     },
   });
 
-  const onSubmit = (data) => {
-    toast.success('Profile settings updated successfully!');
+  const onSubmit = () => {
+    toast.success('Profile credentials updated successfully!');
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto select-none">
+    <div className="space-y-6 max-w-3xl mx-auto select-none">
       <PageTitle
-        title="Student Profile"
-        description="Verify and update your academic scores, categories, and financial indicators to fetch matched scholarships."
+        title="Student Academic Profile"
+        description="Verify and update your GPA scores, category descriptors, and income criteria for AI matching audits."
       />
 
-      <Card>
+      <Card className="p-8">
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
             
-            <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-6 mb-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-[#EEEEEE] pb-6 mb-6">
               <img
                 src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=120&auto=format&fit=crop'}
                 alt="Avatar"
-                className="w-16 h-16 rounded-full object-cover border-2 border-primary-500"
+                className="w-16 h-16 rounded-full object-cover border-2 border-[#CD0000]"
               />
               <div className="text-center sm:text-left">
-                <h4 className="text-sm font-bold text-slate-800 dark:text-white">{user?.full_name || 'Amit Kumar'}</h4>
-                <p className="text-xs text-slate-400">Unique Student ID: #SCH-29472</p>
+                <h4 className="text-xl font-extrabold font-heading text-[#111111]">{user?.full_name || 'Jane Doe'}</h4>
+                <p className="text-xs text-[#666666] font-medium font-heading">Verified Student ID: #SCH-29472</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <FormInput
                 name="fullName"
                 label="Full Name"
@@ -77,44 +77,44 @@ const Profile = () => {
 
               <FormInput
                 name="gpa"
-                label="Academic GPA / CGPA"
+                label="Academic GPA Score"
                 icon={Award}
                 required
               />
 
               <FormInput
                 name="income"
-                label="Annual Family Income"
+                label="Annual Household Income"
                 icon={CreditCard}
                 required
               />
 
               <FormSelect
                 name="category"
-                label="Category / Social Status"
+                label="Demographic Category"
                 required
                 options={[
-                  { label: 'General', value: 'General' },
-                  { label: 'OBC (Other Backward Classes)', value: 'OBC' },
-                  { label: 'SC (Scheduled Caste)', value: 'SC' },
-                  { label: 'ST (Scheduled Tribe)', value: 'ST' },
+                  { label: 'General / Unreserved', value: 'General' },
+                  { label: 'Minority Scholarship', value: 'Minority' },
+                  { label: 'First-Generation College', value: 'FirstGen' },
+                  { label: 'Women in STEM', value: 'WomenInSTEM' },
                 ]}
               />
 
               <FormInput
                 name="state"
-                label="State of Residency"
+                label="State / Region of Residency"
                 icon={MapPin}
                 required
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-3 pt-6 border-t border-[#EEEEEE]">
               <Button type="button" variant="secondary" onClick={() => methods.reset()}>
-                Discard Changes
+                Reset Fields
               </Button>
               <Button type="submit" variant="primary">
-                Save Preferences
+                Save Profile Preferences
               </Button>
             </div>
           </form>

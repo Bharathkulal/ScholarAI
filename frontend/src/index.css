@@ -1,36 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-primary: 37 99 235;    /* #2563EB */
-    --color-secondary: 96 165 250; /* #60A5FA */
-    --color-success: 16 185 129;   /* #10B981 */
-    --color-warning: 245 158 11;   /* #F59E0B */
-    --color-error: 239 68 68;      /* #EF4444 */
-    
-    --bg-app: 248 250 252;         /* #F8FAFC */
-    --bg-surface: 255 255 255;     /* #FFFFFF */
-    --text-main: 17 24 39;         /* #111827 */
-    --text-muted: 75 85 99;        /* #4B5563 */
-    --border-color: 226 232 240;   /* #E2E8F0 */
-  }
-
-  .dark {
-    --bg-app: 15 23 42;            /* #0F172A */
-    --bg-surface: 30 41 59;        /* #1E293B */
-    --text-main: 248 250 252;      /* #F8FAFC */
-    --text-muted: 148 163 184;     /* #94A3B8 */
-    --border-color: 51 65 85;      /* #334155 */
+    --color-cream: #EFEDE6;
+    --color-cherry: #CD0000;
+    --color-cherry-hover: #B30000;
+    --color-rich-black: #111111;
+    --color-surface-white: #FFFFFF;
+    --color-secondary-bg: #F8F8F8;
+    --color-border-muted: #DDDDDD;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased overflow-x-hidden transition-colors duration-300;
-    background-color: rgb(var(--bg-app));
-    color: rgb(var(--text-main));
+    background-color: var(--color-cream);
+    color: var(--color-rich-black);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    letter-spacing: -0.02em;
   }
 
   /* Custom Scrollbar */
@@ -42,65 +36,147 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 rounded-full transition-colors duration-200;
+    background-color: #DDDDDD;
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-300;
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700;
-  }
-  .dark ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-600;
+    background-color: #CD0000;
   }
 }
 
 @layer components {
-  /* Typography Utilities */
-  .text-hero {
-    @apply text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight;
+  /* Typography Classes */
+  .font-heading {
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
   }
-  
+
+  .text-hero {
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
   .text-section-title {
-    @apply text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white;
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
   .text-card-title {
-    @apply text-lg font-semibold tracking-tight text-slate-900 dark:text-white;
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
   }
 
   .text-body-text {
-    @apply text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed;
-  }
-
-  .text-caption {
-    @apply text-xs text-slate-400 dark:text-slate-500 font-medium;
+    font-family: 'Inter', sans-serif;
+    color: #444444;
+    line-height: 1.6;
   }
 
   /* Premium Cards & Containers */
   .premium-card {
-    @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-soft hover:shadow-premium transition-all duration-300;
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .premium-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.08);
+    border-color: #CCCCCC;
   }
 
   /* Buttons */
   .btn-primary {
-    @apply px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #CD0000;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(205, 0, 0, 0.2);
   }
-  
+
+  .btn-primary:hover {
+    background-color: #B30000;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(205, 0, 0, 0.3);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
   .btn-secondary {
-    @apply px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #FFFFFF;
+    color: #111111;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 16px;
+    border: 1px solid #DDDDDD;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-secondary:hover {
+    background-color: #EFEDE6;
+    border-color: #CCCCCC;
+    transform: scale(1.01);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98);
   }
 
   .btn-outline {
-    @apply px-4 py-2.5 bg-transparent border-2 border-primary-600 hover:bg-primary-50 text-primary-600 font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: transparent;
+    color: #CD0000;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 16px;
+    border: 1.5px solid #CD0000;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .btn-danger {
-    @apply px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm;
+  .btn-outline:hover {
+    background-color: #FFE5E5;
+    transform: scale(1.01);
   }
 
-  .btn-link {
-    @apply text-primary-600 hover:text-primary-750 hover:underline font-medium transition-all duration-200 inline-flex items-center gap-1 text-sm;
+  /* Form Fields */
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    border-radius: 16px;
+    color: #111111;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #CD0000;
+    box-shadow: 0 0 0 3px rgba(205, 0, 0, 0.1);
   }
 }

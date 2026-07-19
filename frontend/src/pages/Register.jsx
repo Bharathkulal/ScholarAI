@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
+import { motion } from 'framer-motion';
 import { registerSchema } from '../utils/validation';
 import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/forms/FormInput';
@@ -40,7 +41,6 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Mock account registration followed by automatic login
       toast.success('Registration successful!');
       const profile = await login(data.email, data.password);
       toast.success(`Welcome to ScholarAI, ${profile.full_name}!`);
@@ -51,10 +51,19 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-6"
+    >
       <div className="text-center">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Create Account</h2>
-        <p className="text-xs text-slate-500 mt-1">Get started with AI scholarship matching</p>
+        <h2 className="text-2xl font-extrabold uppercase font-heading text-[#111111] tracking-tight">
+          Create Account
+        </h2>
+        <p className="text-xs font-sans text-[#666666] mt-1">
+          Join 120,000+ students finding verified grants
+        </p>
       </div>
 
       <FormProvider {...methods}>
@@ -95,7 +104,7 @@ const Register = () => {
 
           <Button
             type="submit"
-            className="w-full h-11"
+            className="w-full h-12 text-xs uppercase font-heading tracking-wider mt-2"
             isLoading={methods.formState.isSubmitting}
           >
             Create Account
@@ -103,13 +112,13 @@ const Register = () => {
         </form>
       </FormProvider>
 
-      <p className="text-center text-xs text-slate-500 mt-2">
+      <p className="text-center text-xs text-[#666666] mt-2">
         Already have an account?{' '}
-        <Link to="/login" className="text-primary-600 hover:underline font-bold">
+        <Link to="/login" className="text-[#CD0000] font-heading uppercase font-bold hover:underline">
           Sign In
         </Link>
       </p>
-    </div>
+    </motion.div>
   );
 };
 

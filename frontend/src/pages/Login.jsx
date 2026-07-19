@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
+import { motion } from 'framer-motion';
 import { loginSchema } from '../utils/validation';
 import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/forms/FormInput';
@@ -9,7 +10,6 @@ import { Alert } from '../components/ui/Alert';
 import { Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Custom lightweight zod resolver to avoid external dependency issues if resolvers are not fully resolved
 const customResolver = (schema) => async (values) => {
   try {
     const data = schema.parse(values);
@@ -65,10 +65,19 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-6"
+    >
       <div className="text-center">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Welcome Back</h2>
-        <p className="text-xs text-slate-500 mt-1">Sign in to manage your scholarships</p>
+        <h2 className="text-2xl font-extrabold uppercase font-heading text-[#111111] tracking-tight">
+          Welcome Back
+        </h2>
+        <p className="text-xs font-sans text-[#666666] mt-1">
+          Access your AI scholarship matching portal
+        </p>
       </div>
 
       {sessionExpired && (
@@ -78,11 +87,11 @@ const Login = () => {
       )}
 
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-5">
           <FormInput
             name="email"
             label="Email Address"
-            placeholder="name@example.com"
+            placeholder="student@scholarai.com"
             icon={Mail}
             required
           />
@@ -98,47 +107,47 @@ const Login = () => {
 
           <Button
             type="submit"
-            className="w-full h-11"
+            className="w-full h-12 text-xs uppercase font-heading tracking-wider"
             isLoading={methods.formState.isSubmitting}
           >
-            Sign In
+            Sign In to Portal
           </Button>
         </form>
       </FormProvider>
 
       <div className="relative my-2">
         <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+          <div className="w-full border-t border-[#DDDDDD]" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-slate-800 px-2 text-slate-400 font-semibold">Demo Prefills</span>
+        <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-heading font-bold">
+          <span className="bg-white px-3 text-[#888888]">Quick Demo Login</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Button
           variant="secondary"
-          className="text-xs !py-2"
+          className="text-xs font-heading uppercase tracking-wider !py-2.5"
           onClick={() => handleQuickPrefill('student')}
         >
           Prefill Student
         </Button>
         <Button
           variant="secondary"
-          className="text-xs !py-2"
+          className="text-xs font-heading uppercase tracking-wider !py-2.5"
           onClick={() => handleQuickPrefill('admin')}
         >
           Prefill Admin
         </Button>
       </div>
 
-      <p className="text-center text-xs text-slate-500 mt-2">
+      <p className="text-center text-xs text-[#666666] mt-2">
         Don't have an account?{' '}
-        <Link to="/register" className="text-primary-600 hover:underline font-bold">
+        <Link to="/register" className="text-[#CD0000] font-heading uppercase font-bold hover:underline">
           Register here
         </Link>
       </p>
-    </div>
+    </motion.div>
   );
 };
 

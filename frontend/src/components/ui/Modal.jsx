@@ -39,7 +39,7 @@ export const Modal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeOnOverlayClick ? onClose : undefined}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-[#111111]/40 backdrop-blur-sm"
           />
 
           {/* Modal Container */}
@@ -47,13 +47,13 @@ export const Modal = ({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`w-full ${sizes[size]} bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-premium z-10 flex flex-col overflow-hidden max-h-[90vh]`}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className={`w-full ${sizes[size]} bg-white border border-[#DDDDDD] rounded-[24px] shadow-[0_12px_30px_-10px_rgba(0,0,0,0.12)] z-10 flex flex-col overflow-hidden max-h-[90vh]`}
           >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-750 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-[#EEEEEE] flex items-center justify-between">
               {title ? (
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-bold font-heading text-[#111111]">
                   {title}
                 </h3>
               ) : (
@@ -61,14 +61,14 @@ export const Modal = ({
               )}
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center transition-colors duration-150"
+                className="w-9 h-9 rounded-full hover:bg-[#EFEDE6] text-[#666666] hover:text-[#111111] flex items-center justify-center transition-colors duration-150"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1">
               {children}
             </div>
           </motion.div>

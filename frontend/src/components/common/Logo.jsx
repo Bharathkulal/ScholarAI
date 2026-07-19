@@ -4,12 +4,12 @@ import { GraduationCap } from 'lucide-react';
 
 export const Logo = ({ className = '', link = '/' }) => {
   const content = (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-400 flex items-center justify-center text-white shadow-lg shadow-primary-500/20">
-        <GraduationCap className="w-6 h-6" />
+    <div className={`flex items-center gap-2.5 select-none ${className}`}>
+      <div className="w-9 h-9 rounded-xl bg-[#CD0000] flex items-center justify-center text-white shadow-[0_4px_12px_rgba(205,0,0,0.25)]">
+        <GraduationCap className="w-5 h-5" />
       </div>
-      <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-primary-600 dark:from-white dark:to-primary-400 bg-clip-text text-transparent">
-        ScholarAI
+      <span className="text-xl font-extrabold tracking-tight font-heading text-[#111111]">
+        ScholarAI<span className="text-[#CD0000]">.</span>
       </span>
     </div>
   );

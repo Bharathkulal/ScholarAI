@@ -10,9 +10,9 @@ import { FolderOpen, FileCheck, FileWarning, Eye, Trash2, Plus, Upload } from 'l
 import toast from 'react-hot-toast';
 
 const MOCK_DOCUMENTS = [
-  { id: 1, name: 'Class 12 Marksheet.pdf', type: 'Academic transcript', size: '1.4 MB', status: 'verified' },
-  { id: 2, name: 'Income Certificate 2026.pdf', type: 'Financial statement', size: '890 KB', status: 'verified' },
-  { id: 3, name: 'Category Certificate.pdf', type: 'Demographic identity', size: '2.1 MB', status: 'pending' },
+  { id: 1, name: 'Official Transcript 2026.pdf', type: 'Academic transcript', size: '1.4 MB', status: 'verified' },
+  { id: 2, name: 'Income Tax Return 2026.pdf', type: 'Financial statement', size: '890 KB', status: 'verified' },
+  { id: 3, name: 'Citizenship Identity Card.pdf', type: 'Demographic identity', size: '2.1 MB', status: 'pending' },
 ];
 
 const Documents = () => {
@@ -38,7 +38,7 @@ const Documents = () => {
     setIsModalOpen(false);
     setNewDocName('');
     setNewDocType('');
-    toast.success('Document uploaded to vault successfully!');
+    toast.success('Document uploaded to encrypted vault successfully!');
   };
 
   const handleDelete = (id) => {
@@ -49,10 +49,10 @@ const Documents = () => {
   return (
     <div className="space-y-6 select-none">
       <PageTitle
-        title="Document Vault"
-        description="Organize and store your transcripts, certificates, and income records securely in our encrypted cloud vault."
+        title="Encrypted Document Vault"
+        description="Organize and store transcripts, recommendation letters, and financial certificates in your secure cloud vault."
         action={
-          <Button onClick={() => setIsModalOpen(true)} variant="primary" className="!py-2 !text-xs">
+          <Button onClick={() => setIsModalOpen(true)} variant="primary" className="!py-2.5 !px-5 text-xs font-heading uppercase tracking-wider">
             <Plus className="w-4 h-4" />
             Upload Document
           </Button>
@@ -61,47 +61,47 @@ const Documents = () => {
 
       <div className="grid grid-cols-1 gap-4">
         {docs.map((doc) => (
-          <Card key={doc.id} className="p-4 hover:shadow-soft">
+          <Card key={doc.id} className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-105 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center">
-                  <FolderOpen className="w-5.5 h-5.5 text-primary-600" />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#CD0000] text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(205,0,0,0.25)]">
+                  <FolderOpen className="w-6 h-6" />
                 </div>
                 <div>
-                  <h5 className="text-sm font-bold text-slate-800 dark:text-white leading-snug">
+                  <h5 className="text-base font-extrabold font-heading text-[#111111] leading-snug">
                     {doc.name}
                   </h5>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[#666666] font-medium mt-0.5">
                     {doc.type} • {doc.size}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 dark:border-slate-805">
+              <div className="flex items-center gap-4 justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-[#EEEEEE]">
                 <Badge variant={doc.status === 'verified' ? 'success' : 'warning'}>
                   {doc.status === 'verified' ? (
                     <span className="flex items-center gap-1">
-                      <FileCheck className="w-3 h-3" /> Verified
+                      <FileCheck className="w-3.5 h-3.5" /> Verified
                     </span>
                   ) : (
                     <span className="flex items-center gap-1">
-                      <FileWarning className="w-3 h-3" /> Verification Pending
+                      <FileWarning className="w-3.5 h-3.5" /> Verification Pending
                     </span>
                   )}
                 </Badge>
 
                 <div className="flex gap-2">
-                  <Button variant="ghost" className="!p-1.5 min-h-0" title="View Document">
-                    <Eye className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+                  <Button variant="secondary" className="!p-2 min-h-0" title="View Document">
+                    <Eye className="w-4 h-4 text-[#111111]" />
                   </Button>
                   <Button
-                    variant="ghost"
-                    className="!p-1.5 min-h-0"
+                    variant="danger"
+                    className="!p-2 min-h-0"
                     title="Delete Document"
                     onClick={() => handleDelete(doc.id)}
                   >
-                    <Trash2 className="w-4 h-4 text-red-500 hover:text-red-700" />
+                    <Trash2 className="w-4 h-4 text-white" />
                   </Button>
                 </div>
               </div>
@@ -112,11 +112,11 @@ const Documents = () => {
       </div>
 
       {/* Upload Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Upload Document">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Upload Document to Vault">
         <form onSubmit={handleUpload} className="space-y-4">
           <Input
             label="Document Name"
-            placeholder="e.g. Income Certificate 2026"
+            placeholder="e.g. Official Transcript 2026"
             value={newDocName}
             onChange={(e) => setNewDocName(e.target.value)}
             required
@@ -130,23 +130,23 @@ const Documents = () => {
               { label: 'Academic Transcript', value: 'Academic transcript' },
               { label: 'Financial Statement', value: 'Financial statement' },
               { label: 'Demographic Identity', value: 'Demographic identity' },
-              { label: 'Other/Supporting Certificate', value: 'Supporting certificate' },
+              { label: 'Supporting Certificate', value: 'Supporting certificate' },
             ]}
             required
           />
 
-          <div className="p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer">
-            <Upload className="w-8 h-8 text-slate-400 mb-2" />
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Drag or select PDF/Image</span>
-            <span className="text-[10px] text-slate-400 mt-1">Maximum size limit 5MB</span>
+          <div className="p-8 border-2 border-dashed border-[#DDDDDD] rounded-[16px] flex flex-col items-center justify-center text-center bg-[#EFEDE6] hover:bg-[#E4E0D5] transition-colors duration-200 cursor-pointer">
+            <Upload className="w-8 h-8 text-[#CD0000] mb-2" />
+            <span className="text-xs font-bold font-heading text-[#111111] uppercase tracking-wider">Drag or select PDF/Image</span>
+            <span className="text-[10px] text-[#666666] mt-1">Encrypted upload limit: 5MB</span>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-750">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#EEEEEE]">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
-              Upload to Vault
+              Upload File
             </Button>
           </div>
         </form>

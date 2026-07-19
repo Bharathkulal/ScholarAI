@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, User, LayoutDashboard, Shield, ListCollapse } from 'lucide-react';
+import { LogOut, LayoutDashboard, Shield, ListCollapse } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import Logo from './Logo';
-import ThemeToggle from './ThemeToggle';
 
 export const Header = ({ onMenuClick, className = '' }) => {
   const { user, switchRole, logout } = useAuth();
@@ -27,15 +26,15 @@ export const Header = ({ onMenuClick, className = '' }) => {
   };
 
   return (
-    <header className={`sticky top-0 z-40 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className={`sticky top-0 z-40 w-full bg-[#EFEDE6] border-b border-[#DDDDDD] transition-colors duration-200 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Left: Mobile Menu Trigger + Logo */}
         <div className="flex items-center gap-3">
           {onMenuClick && (
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-550 dark:text-slate-400"
+              className="lg:hidden p-2 rounded-xl hover:bg-[#E4E0D5] text-[#111111]"
               aria-label="Toggle menu"
             >
               <ListCollapse className="w-5 h-5" />
@@ -49,47 +48,45 @@ export const Header = ({ onMenuClick, className = '' }) => {
           
           {/* Quick Demo Role Switcher */}
           <div className="hidden sm:flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Demo Role:</span>
+            <span className="text-[10px] font-bold font-heading uppercase text-[#666666] tracking-wider">Role Switcher:</span>
             <select
               value={user?.role || ''}
               onChange={handleRoleSelect}
-              className="text-xs bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1 focus:outline-none"
+              className="text-xs font-bold font-heading uppercase bg-white border border-[#DDDDDD] text-[#111111] rounded-[12px] px-3 py-1.5 focus:outline-none focus:border-[#CD0000] cursor-pointer shadow-sm"
             >
               <option value="">Guest (Public)</option>
-              <option value="student">Student</option>
-              <option value="admin">Administrator</option>
+              <option value="student">Student Portal</option>
+              <option value="admin">Admin Console</option>
             </select>
           </div>
-
-          <ThemeToggle />
 
           {/* User Section */}
           {user ? (
             <div className="flex items-center gap-3">
               <Link
                 to={user.role === 'admin' ? '/admin' : '/dashboard'}
-                className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-slate-650 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400 transition-colors duration-150"
+                className="hidden md:flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors duration-150"
               >
-                {user.role === 'admin' ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
-                {user.role === 'admin' ? 'Admin Portal' : 'Dashboard'}
+                {user.role === 'admin' ? <Shield className="w-4 h-4 text-[#CD0000]" /> : <LayoutDashboard className="w-4 h-4 text-[#CD0000]" />}
+                {user.role === 'admin' ? 'Admin Portal' : 'Student Portal'}
               </Link>
-              <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-800 hidden md:block" />
+              <div className="h-6 w-[1px] bg-[#DDDDDD] hidden md:block" />
               
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <Link to="/profile" className="flex items-center gap-2 hover:opacity-90">
                   <img
                     src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop'}
                     alt={user.full_name}
-                    className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
+                    className="w-8 h-8 rounded-full border border-[#DDDDDD] object-cover"
                   />
-                  <span className="hidden lg:block text-sm font-semibold text-slate-750 dark:text-slate-200">
+                  <span className="hidden lg:block text-xs font-bold uppercase tracking-wider font-heading text-[#111111]">
                     {user.full_name.split(' ')[0]}
                   </span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
-                  className="p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 cursor-pointer"
+                  className="p-2 rounded-xl text-[#DC2626] hover:bg-[#FFE5E5] transition-all duration-200 cursor-pointer"
                   title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -97,11 +94,11 @@ export const Header = ({ onMenuClick, className = '' }) => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login" className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 transition-colors duration-150">
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors duration-150 px-2 py-1">
                 Sign In
               </Link>
-              <Link to="/register" className="btn-primary !px-4 !py-2">
+              <Link to="/register" className="btn-primary !py-2 !px-4 text-xs font-heading uppercase tracking-wider">
                 Get Started
               </Link>
             </div>

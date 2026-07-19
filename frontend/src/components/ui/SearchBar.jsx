@@ -5,13 +5,13 @@ export const SearchBar = ({
   value = '',
   onChange,
   onClear,
-  placeholder = 'Search scholarships, providers...',
+  placeholder = 'Search scholarships, providers, keywords...',
   className = '',
   ...props
 }) => {
   return (
     <div className={`relative flex items-center w-full ${className}`}>
-      <div className="absolute left-3.5 text-slate-400 pointer-events-none">
+      <div className="absolute left-4 text-[#666666] pointer-events-none">
         <Search className="w-4.5 h-4.5" />
       </div>
       <input
@@ -19,16 +19,16 @@ export const SearchBar = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-11 pr-10 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+        className="w-full bg-white border border-[#DDDDDD] rounded-[16px] pl-11 pr-10 py-3 text-sm text-[#111111] placeholder-[#888888] focus:outline-none focus:border-[#CD0000] focus:ring-1 focus:ring-[#CD0000] transition-all duration-200 shadow-sm"
         {...props}
       />
       {value && onClear && (
         <button
           type="button"
           onClick={onClear}
-          className="absolute right-3 w-6 h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-705 text-slate-400 hover:text-slate-655 flex items-center justify-center transition-colors duration-150"
+          className="absolute right-3.5 w-6 h-6 rounded-full hover:bg-[#EFEDE6] text-[#666666] hover:text-[#111111] flex items-center justify-center transition-colors duration-150"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       )}
     </div>

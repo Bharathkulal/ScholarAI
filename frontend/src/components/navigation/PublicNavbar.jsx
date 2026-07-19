@@ -1,44 +1,39 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Logo from '../common/Logo';
-import ThemeToggle from '../common/ThemeToggle';
 import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../ui/Button';
 
 export const PublicNavbar = () => {
   const { isAuthenticated, logout, user } = useAuth();
 
   return (
-    <nav className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <nav className="w-full bg-[#EFEDE6] border-b border-[#DDDDDD] sticky top-0 z-40 backdrop-blur-md bg-opacity-90 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <Logo />
         
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-6 sm:gap-8">
           <NavLink
             to="/scholarships"
             className={({ isActive }) =>
-              `text-sm font-semibold transition-colors duration-150 ${
-                isActive ? 'text-primary-600' : 'text-slate-500 hover:text-slate-800 dark:text-slate-450 dark:hover:text-white'
+              `text-xs sm:text-sm font-bold tracking-wider uppercase font-heading transition-colors duration-150 ${
+                isActive ? 'text-[#CD0000]' : 'text-[#555555] hover:text-[#111111]'
               }`
             }
           >
             Explore Scholarships
           </NavLink>
-          
-          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-850" />
-          
-          <ThemeToggle />
 
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Link
-                to={user?.role === 'admin' ? '/admin' : '/dashboard'}
-                className="text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-primary-605"
-              >
-                Go to Portal
+              <Link to={user?.role === 'admin' ? '/admin' : '/dashboard'}>
+                <Button variant="primary" className="!py-2 !px-4 text-xs font-heading uppercase tracking-wider">
+                  Go to Portal
+                </Button>
               </Link>
               <button
                 onClick={logout}
-                className="btn-secondary !px-3 !py-1.5 !text-xs text-red-500"
+                className="text-xs font-bold font-heading uppercase text-[#DC2626] hover:underline"
               >
                 Sign Out
               </button>
@@ -47,12 +42,14 @@ export const PublicNavbar = () => {
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-semibold text-slate-650 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors duration-150"
+                className="text-xs font-bold uppercase tracking-wider font-heading text-[#111111] hover:text-[#CD0000] transition-colors duration-150 px-2 py-1"
               >
                 Sign In
               </Link>
-              <Link to="/register" className="btn-primary !px-4 !py-2">
-                Register
+              <Link to="/register">
+                <Button variant="primary" className="!py-2 !px-5 text-xs font-heading uppercase tracking-wider">
+                  Register
+                </Button>
               </Link>
             </div>
           )}
