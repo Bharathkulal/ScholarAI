@@ -12,10 +12,13 @@ from app.schemas.scholarship import (
     ScholarshipUpdateSchema,
     BulkImportSummarySchema
 )
+from app.schemas.application import AdminApplicationReviewSchema
 from app.repositories.user import UserRepository
 from app.repositories.scholarship import ScholarshipRepository
+from app.repositories.application import ApplicationRepository
 from app.services.student import StudentService
 from app.services.scholarship import ScholarshipService
+from app.services.application import ApplicationService
 
 router = APIRouter(dependencies=[RequireRole(["admin", "superadmin"])])
 
@@ -23,10 +26,13 @@ router = APIRouter(dependencies=[RequireRole(["admin", "superadmin"])])
 async def get_dashboard(db: AsyncIOMotorDatabase = Depends(get_database)):
     user_repo = UserRepository(db)
     scholarship_repo = ScholarshipRepository(db)
+    app_repo = ApplicationRepository(db)
     
     total_students = await user_repo.count({"role": "student"})
     total_scholarships = await scholarship_repo.count({})
     published_scholarships = await scholarship_repo.count({"status": "published"})
+    total_applications = await app_repo.count({})
+    pending_applications = await app_repo.count({"status": "submitted"})
 
     return SuccessResponse(
         success=True,
@@ -36,9 +42,9 @@ async def get_dashboard(db: AsyncIOMotorDatabase = Depends(get_database)):
                 "total_students": total_students,
                 "total_scholarships": total_scholarships,
                 "published_scholarships": published_scholarships,
-                "active_applications": 0,
-                "verified_documents": 0,
-                "pending_verifications": 0
+                "active_applications": total_applications,
+                "pending_verifications": pending_applications,
+                "verified_documents": total_applications - pending_applications
             }
         }
     )
@@ -243,9 +249,64 @@ async def export_scholarships(db: AsyncIOMotorDatabase = Depends(get_database)):
         headers={"Content-Disposition": "attachment; filename=scholarships_export.csv"}
     )
 
-@router.get("/applications", summary="List and manage student applications")
-async def list_applications():
-    return {"applications": [], "status": "placeholder"}
+# ==================== APPLICATION MANAGEMENT APIS ====================
+
+@router.get("/applications", summary="List and audit all student scholarship applications")
+async def list_admin_applications(
+    query: Optional[str] = Query(None),
+    status_val: Optional[str] = Query(None, alias="status"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    repo = ApplicationRepository(db)
+    res = await repo.find_all_admin(status_val=status_val, query=query, page=page, limit=limit)
+    return SuccessResponse(
+        success=True,
+        message="Admin applications catalog retrieved.",
+        data=res
+    )
+
+@router.get("/applications/{id}", summary="Get detailed application record & frozen profile snapshot")
+async def get_admin_application_detail(
+    id: str = Path(..., description="Application ID"),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    repo = ApplicationRepository(db)
+    app_doc = await repo.get_by_id(id)
+
+    if not app_doc:
+        app_doc = await repo.get_by_number(id)
+
+    if not app_doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application file not found."
+        )
+
+    app_doc["_id"] = str(app_doc["_id"])
+
+    return SuccessResponse(
+        success=True,
+        message="Application detail retrieved for admin audit.",
+        data={"application": app_doc}
+    )
+
+@router.put("/applications/{id}/status", summary="Approve, reject or update student application status")
+async def review_application_status(
+    review_in: AdminApplicationReviewSchema,
+    id: str = Path(..., description="Application ID"),
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    admin_email = current_user.get("email") or "admin@scholarai.com"
+    updated = await ApplicationService.admin_review_application(id, review_in, admin_email, db)
+
+    return SuccessResponse(
+        success=True,
+        message=f"Application status updated to '{review_in.status}'.",
+        data={"application": updated}
+    )
 
 @router.get("/analytics", summary="Retrieve advanced system analytics")
 async def get_analytics():

@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 async def create_indexes() -> None:
     """
-    Creates necessary MongoDB indexes on startup to optimize query performance
-    and enforce uniqueness constraints across users and scholarships collections.
+    Creates necessary MongoDB indexes on startup across users, scholarships,
+    applications, and saved_scholarships collections.
     """
     db = db_manager.db
     if db is None:
@@ -42,6 +42,22 @@ async def create_indexes() -> None:
             )
         ]
         await db.scholarships.create_indexes(scholarship_indexes)
+
+        # 3. Applications Indexes
+        applications_indexes = [
+            IndexModel([("application_number", ASCENDING)], unique=True, name="idx_app_num_unique"),
+            IndexModel([("student_id", ASCENDING), ("scholarship_id", ASCENDING)], unique=True, name="idx_app_student_sch_unique"),
+            IndexModel([("status", ASCENDING)], name="idx_app_status"),
+            IndexModel([("student_id", ASCENDING)], name="idx_app_student_id")
+        ]
+        await db.applications.create_indexes(applications_indexes)
+
+        # 4. Saved Scholarships Indexes
+        saved_indexes = [
+            IndexModel([("student_id", ASCENDING), ("scholarship_id", ASCENDING)], unique=True, name="idx_saved_student_sch_unique"),
+            IndexModel([("student_id", ASCENDING)], name="idx_saved_student_id")
+        ]
+        await db.saved_scholarships.create_indexes(saved_indexes)
 
         logger.info("Database index validation complete.")
     except Exception as e:

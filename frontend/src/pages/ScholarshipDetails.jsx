@@ -17,12 +17,15 @@ import {
   Globe,
   Mail,
   Phone,
+  Send,
 } from 'lucide-react';
 import { PageTitle } from '../components/common/PageTitle';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Accordion } from '../components/ui/Accordion';
+import { ApplicationWizardModal } from '../components/applications/ApplicationWizardModal';
 import { getScholarshipBySlugApi } from '../services/scholarships';
+import { toggleSaveScholarshipApi, getStudentApplicationsApi } from '../services/applications';
 import toast from 'react-hot-toast';
 
 export const ScholarshipDetails = () => {
@@ -32,20 +35,38 @@ export const ScholarshipDetails = () => {
   const [scholarship, setScholarship] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [existingApp, setExistingApp] = useState(null);
+
+  // Wizard modal state
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+  const fetchDetail = async () => {
+    try {
+      const res = await getScholarshipBySlugApi(slug);
+      if (res && res.scholarship) {
+        setScholarship(res.scholarship);
+        
+        // Check existing application status for student
+        try {
+          const appRes = await getStudentApplicationsApi();
+          if (appRes && appRes.data) {
+            const found = appRes.data.find(
+              (a) => a.scholarship_id === res.scholarship._id || a.scholarship_slug === res.scholarship.slug
+            );
+            if (found) setExistingApp(found);
+          }
+        } catch (e) {
+          // Non-critical check
+        }
+      }
+    } catch (err) {
+      toast.error('Could not load scholarship details.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDetail = async () => {
-      try {
-        const res = await getScholarshipBySlugApi(slug);
-        if (res && res.scholarship) {
-          setScholarship(res.scholarship);
-        }
-      } catch (err) {
-        toast.error('Could not load scholarship details.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDetail();
   }, [slug]);
 
@@ -72,12 +93,14 @@ export const ScholarshipDetails = () => {
     );
   }
 
-  const handleBookmark = () => {
-    setSaved(!saved);
-    if (!saved) {
-      toast.success(`"${scholarship.title}" saved to your bookmarks!`);
-    } else {
-      toast.success('Removed from bookmarks.');
+  const handleBookmarkToggle = async () => {
+    try {
+      const res = await toggleSaveScholarshipApi(scholarship._id);
+      setSaved(res.data?.saved ?? !saved);
+      toast.success(res.message || 'Bookmark updated!');
+    } catch (err) {
+      setSaved(!saved);
+      toast.success(!saved ? 'Saved to bookmarks' : 'Removed from bookmarks');
     }
   };
 
@@ -136,7 +159,7 @@ export const ScholarshipDetails = () => {
 
           <div className="flex items-center gap-3 shrink-0">
             <button
-              onClick={handleBookmark}
+              onClick={handleBookmarkToggle}
               className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                 saved
                   ? 'bg-[#CD0000] text-white border-[#CD0000]'
@@ -250,77 +273,72 @@ export const ScholarshipDetails = () => {
               ))}
             </ul>
           </Card>
-
-          {/* Application Steps */}
-          <Card className="p-6 space-y-4">
-            <h3 className="text-sm font-extrabold font-heading text-[#111111] uppercase tracking-wide border-b border-[#EEEEEE] pb-3">
-              Application Steps & Guidelines
-            </h3>
-
-            <ol className="space-y-3">
-              {(scholarship.application_info?.steps || []).map((step, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-xs text-[#333333]">
-                  <span className="w-6 h-6 rounded-full bg-[#111111] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                    {idx + 1}
-                  </span>
-                  <span className="pt-1">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </Card>
         </div>
 
-        {/* Right Column (4 cols): Call to Action & Provider Details */}
+        {/* Right Column (4 cols): Call to Action */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="p-6 space-y-4 sticky top-6">
             <h4 className="text-sm font-extrabold font-heading text-[#111111] uppercase tracking-wide border-b border-[#EEEEEE] pb-3">
-              Official Portal Application
+              Application Actions
             </h4>
 
-            <p className="text-xs text-[#666666]">
-              Apply directly through the verified provider portal before the deadline (<strong>{deadline}</strong>).
-            </p>
+            {existingApp && existingApp.status !== 'cancelled' ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-xs text-green-800 font-bold space-y-1">
+                  <p className="flex items-center gap-1.5 font-heading">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    Application Registered!
+                  </p>
+                  <p className="font-mono text-[11px]">ID: {existingApp.application_number}</p>
+                  <p className="text-[10px] font-normal uppercase">Status: {existingApp.status.replace('_', ' ')}</p>
+                </div>
 
-            <a
-              href={applyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full h-12 rounded-[16px] bg-[#CD0000] hover:bg-[#B30000] text-white font-heading font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lift"
-            >
-              Apply on Official Portal
-              <ExternalLink className="w-4 h-4" />
-            </a>
+                <Button
+                  onClick={() => navigate('/applications')}
+                  variant="primary"
+                  className="w-full text-xs uppercase font-heading"
+                >
+                  Track in Applications Console
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-[#666666]">
+                  Apply directly on ScholarAI portal or navigate to official provider website.
+                </p>
 
-            {scholarship.official_website && (
-              <a
-                href={scholarship.official_website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full h-10 rounded-xl bg-[#F4F4F0] hover:bg-[#EEEEEE] text-[#111111] font-heading font-extrabold text-xs uppercase flex items-center justify-center gap-2 transition-colors border border-[#DDDDDD]"
-              >
-                <Globe className="w-4 h-4 text-[#666666]" />
-                Official Organization Website
-              </a>
+                <Button
+                  onClick={() => setIsWizardOpen(true)}
+                  variant="primary"
+                  className="w-full h-12 text-xs uppercase font-heading font-extrabold gap-2 !bg-[#CD0000] hover:!bg-[#B30000]"
+                >
+                  <Send className="w-4 h-4" />
+                  Apply via Portal Wizard
+                </Button>
+
+                <a
+                  href={applyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-10 rounded-xl bg-[#F4F4F0] hover:bg-[#EEEEEE] text-[#111111] font-heading font-extrabold text-xs uppercase flex items-center justify-center gap-2 transition-colors border border-[#DDDDDD]"
+                >
+                  <ExternalLink className="w-4 h-4 text-[#666666]" />
+                  Apply on Official Website
+                </a>
+              </div>
             )}
-
-            <div className="pt-4 border-t border-[#EEEEEE] space-y-2 text-xs text-[#666666]">
-              {scholarship.contact_email && (
-                <p className="flex items-center gap-2 truncate">
-                  <Mail className="w-4 h-4 text-[#888888] shrink-0" />
-                  <span className="truncate">{scholarship.contact_email}</span>
-                </p>
-              )}
-              {scholarship.contact_phone && (
-                <p className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#888888] shrink-0" />
-                  <span>{scholarship.contact_phone}</span>
-                </p>
-              )}
-            </div>
           </Card>
         </div>
 
       </div>
+
+      {/* Mounted Wizard Modal */}
+      <ApplicationWizardModal
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        scholarship={scholarship}
+        onSuccess={() => fetchDetail()}
+      />
     </div>
   );
 };
