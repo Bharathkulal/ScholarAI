@@ -1,75 +1,107 @@
-import React, { useState } from 'react';
-import { Filter, Calendar, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Filter,
+  Calendar,
+  Award,
+  Search,
+  Grid,
+  List,
+  Clock,
+  ArrowRight,
+  Bookmark,
+  Building,
+  Loader2,
+  ExternalLink,
+} from 'lucide-react';
 import { PageTitle } from '../components/common/PageTitle';
 import { SearchBar } from '../components/ui/SearchBar';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { Select } from '../components/ui/Select';
 import { Button } from '../components/ui/Button';
 import { Pagination } from '../components/ui/Pagination';
-import { Accordion } from '../components/ui/Accordion';
-
-const MOCK_SCHOLARSHIPS = [
-  {
-    id: 1,
-    title: 'Karnataka Post-Matric State Scholarship (SSP)',
-    provider: 'Department of Higher Education, Govt of Karnataka',
-    amount: '₹50,000 / year',
-    deadline: '2026-08-15',
-    match: '98% Match',
-    description: 'Provides financial aid to meritorious Karnataka students pursuing diploma, degree, and postgraduate courses.',
-    criteria: 'Karnataka domicile required. Minimum 75% SSLC/PUC marks, family income under ₹2.5 LPA.',
-  },
-  {
-    id: 2,
-    title: 'Infosys Foundation Women in STEM Grant',
-    provider: 'Infosys Foundation, Bengaluru',
-    amount: '₹1,50,000 / year',
-    deadline: '2026-09-01',
-    match: '95% Match',
-    description: 'Supports meritorious female engineering students enrolled in accredited Karnataka and Indian institutes.',
-    criteria: 'Enrolled in BE/BTech in CS, IT, or Electronics. Minimum 8.5 CGPA, family income under ₹5.0 LPA.',
-  },
-  {
-    id: 3,
-    title: 'Tata Endowment for Higher Education',
-    provider: 'Tata Trusts, Mumbai',
-    amount: '₹2,00,000 total',
-    deadline: '2026-10-10',
-    match: '89% Match',
-    description: 'Loan scholarship for outstanding Indian graduates pursuing postgraduate studies in top global or Indian universities.',
-    criteria: 'Undergraduate degree with first class marks from a recognized Indian university.',
-  },
-  {
-    id: 4,
-    title: 'Karnataka ePASS Pre-Matric & Post-Matric Aid',
-    provider: 'Backward Classes Welfare Dept, Govt of Karnataka',
-    amount: '₹25,000 / year',
-    deadline: '2026-11-15',
-    match: '85% Match',
-    description: 'Reimbursement of tuition fees and maintenance allowance for students belonging to Category-1, 2A, 2B, 3A, 3B.',
-    criteria: 'Karnataka resident belonging to eligible OBC categories. Valid income and caste certificate required.',
-  },
-];
+import { getScholarshipsApi, getScholarshipCategoriesApi } from '../services/scholarships';
+import toast from 'react-hot-toast';
 
 const Scholarships = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [degree, setDegree] = useState('');
-  const [amountRange, setAmountRange] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
 
-  const filteredScholarships = MOCK_SCHOLARSHIPS.filter((s) => {
-    const matchesSearch =
-      s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.provider.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  const [scholarships, setScholarships] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter & Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [category, setCategory] = useState('All');
+  const [governmentLevel, setGovernmentLevel] = useState('All');
+  const [stateFilter, setStateFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState('grid'); // "grid" | "list"
+
+  const fetchScholarshipsData = async () => {
+    setLoading(true);
+    try {
+      const res = await getScholarshipsApi({
+        query: searchTerm || undefined,
+        category: category !== 'All' ? category : undefined,
+        government_level: governmentLevel !== 'All' ? governmentLevel : undefined,
+        state: stateFilter !== 'All' ? stateFilter : undefined,
+        sort_by: sortBy,
+        page,
+        limit: 9,
+      });
+
+      if (res && res.data) {
+        setScholarships(res.data.items || []);
+        setTotal(res.data.total || 0);
+        setPages(res.data.pages || 1);
+      }
+    } catch (err) {
+      toast.error('Failed to load scholarships database.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchScholarshipsData();
+  }, [searchTerm, category, governmentLevel, stateFilter, sortBy, page]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getScholarshipCategoriesApi();
+        if (res && res.data) {
+          setCategories(['All', ...res.data]);
+        }
+      } catch (e) {
+        setCategories(['All', 'Karnataka State', 'Women in STEM', 'Merit-Cum-Means', 'Minority Welfare']);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setCategory('All');
+    setGovernmentLevel('All');
+    setStateFilter('All');
+    setSortBy('newest');
+    setPage(1);
+  };
+
+  const handleBookmark = (title) => {
+    toast.success(`"${title}" saved to your bookmarks!`);
+  };
 
   return (
-    <div className="space-y-8 select-none w-full">
+    <div className="space-y-8 select-none w-full pb-16">
       <PageTitle
         title="Find Indian & Karnataka Scholarships"
-        description="Search, filter, and audit eligibility for State Scholarship Portal (SSP Karnataka), NSP, and corporate grants."
+        description="Search, filter, and discover State Scholarship Portal (SSP Karnataka), NSP, and corporate grants."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -82,10 +114,7 @@ const Scholarships = () => {
               Filter Schemes
             </h3>
             <button
-              onClick={() => {
-                setDegree('');
-                setAmountRange('');
-              }}
+              onClick={handleResetFilters}
               className="text-xs font-bold font-heading uppercase text-[#CD0000] hover:underline cursor-pointer min-h-[44px] flex items-center px-1"
             >
               Reset
@@ -94,128 +123,232 @@ const Scholarships = () => {
 
           <div className="space-y-4">
             <Select
-              label="Education Level"
-              value={degree}
-              onChange={(e) => setDegree(e.target.value)}
+              label="Scholarship Category"
+              value={category}
+              onChange={(e) => { setCategory(e.target.value); setPage(1); }}
+              options={categories.map((cat) => ({ label: cat, value: cat }))}
+            />
+
+            <Select
+              label="Government & Provider Level"
+              value={governmentLevel}
+              onChange={(e) => { setGovernmentLevel(e.target.value); setPage(1); }}
               options={[
-                { label: 'All Levels', value: '' },
-                { label: 'PUC / Diploma', value: 'diploma' },
-                { label: 'Undergraduate (BE/BSc/BCom)', value: 'ug' },
-                { label: 'Postgraduate (ME/MTech/MBA)', value: 'pg' },
-                { label: 'Doctorate / Research', value: 'phd' },
+                { label: 'All Levels', value: 'All' },
+                { label: 'State Level (e.g. Karnataka SSP)', value: 'State' },
+                { label: 'Central Level (e.g. NSP)', value: 'Central' },
+                { label: 'Private / Corporate (e.g. Infosys, Tata)', value: 'Private' },
+                { label: 'NGO / Trust Grants', value: 'NGO' },
               ]}
             />
 
             <Select
-              label="Funding Range (₹)"
-              value={amountRange}
-              onChange={(e) => setAmountRange(e.target.value)}
+              label="State of Domicile"
+              value={stateFilter}
+              onChange={(e) => { setStateFilter(e.target.value); setPage(1); }}
               options={[
-                { label: 'Any Amount', value: '' },
-                { label: 'Under ₹50,000', value: 'low' },
-                { label: '₹50,000 - ₹2,00,000', value: 'mid' },
-                { label: 'Above ₹2,00,000', value: 'high' },
+                { label: 'All States', value: 'All' },
+                { label: 'Karnataka', value: 'Karnataka' },
+                { label: 'Maharashtra', value: 'Maharashtra' },
+                { label: 'Tamil Nadu', value: 'Tamil Nadu' },
+                { label: 'Delhi NCR', value: 'Delhi' },
+              ]}
+            />
+
+            <Select
+              label="Sort Results By"
+              value={sortBy}
+              onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+              options={[
+                { label: 'Newest First', value: 'newest' },
+                { label: 'Closing Soonest', value: 'deadline' },
+                { label: 'Highest Amount', value: 'highest_amount' },
+                { label: 'Most Popular', value: 'popularity' },
+                { label: 'Alphabetical', value: 'alphabetical' },
               ]}
             />
           </div>
         </div>
 
-        {/* Search Results (3 cols) */}
+        {/* Main Search & Results List (3 cols) */}
         <div className="lg:col-span-3 space-y-6">
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            onClear={() => setSearchTerm('')}
-            placeholder="Search by SSP scheme name, provider, Karnataka category..."
-          />
+          
+          {/* Top Bar: Search Input & View Mode Toggle */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="w-full sm:w-96">
+              <SearchBar
+                value={searchTerm}
+                onChange={(val) => { setSearchTerm(val); setPage(1); }}
+                placeholder="Search by title, provider, keyword..."
+              />
+            </div>
 
-          <div className="space-y-6">
-            {filteredScholarships.length > 0 ? (
-              filteredScholarships.map((s) => (
-                <Card key={s.id} hoverable className="p-6 sm:p-8 flex flex-col justify-between h-full">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-xl font-extrabold font-heading text-[#111111]">
-                          {s.title}
-                        </h3>
-                        <Badge variant="primary">{s.match}</Badge>
-                      </div>
-                      <p className="text-xs text-[#666666] font-medium">
-                        Provider: <span className="text-[#111111] font-bold font-heading">{s.provider}</span>
-                      </p>
-                      
-                      <div className="flex gap-8 pt-4 flex-wrap">
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#888888] font-heading block tracking-wider">
-                            Award Amount
-                          </span>
-                          <span className="text-lg font-extrabold font-heading text-[#CD0000] flex items-center gap-1">
-                            <Award className="w-4 h-4" />
-                            {s.amount}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#888888] font-heading block tracking-wider">
-                            Closing Date
-                          </span>
-                          <span className="text-sm font-bold text-[#DC2626] font-heading flex items-center gap-1 mt-1">
-                            <Calendar className="w-4 h-4" />
-                            {s.deadline}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+              <span className="text-xs font-bold font-heading text-[#666666] uppercase">
+                Showing {scholarships.length} of {total} Schemes
+              </span>
 
-                    <div className="flex flex-col sm:flex-row md:flex-col justify-end items-stretch gap-3 shrink-0 pt-2 md:pt-0 w-full sm:w-auto">
-                      <Button variant="primary" className="!py-2.5 !px-5 text-xs uppercase font-heading tracking-wider min-h-[44px] w-full sm:w-auto">
-                        Apply Now
-                      </Button>
-                      <Button variant="secondary" className="!py-2.5 !px-5 text-xs uppercase font-heading tracking-wider min-h-[44px] w-full sm:w-auto">
-                        Save Rules
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Expansion description details inside card */}
-                  <div className="mt-6 border-t border-[#EEEEEE] pt-3">
-                    <Accordion
-                      items={[
-                        {
-                          title: 'View Full Description & Karnataka SSP Eligibility Rules',
-                          content: (
-                            <div className="space-y-3 mt-2">
-                              <p className="text-xs text-[#444444] font-sans leading-relaxed">
-                                {s.description}
-                              </p>
-                              <div className="p-4 bg-[#EFEDE6] rounded-[16px] border border-[#DDDDDD]">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#111111] font-heading block mb-1">
-                                  Official Karnataka / NSP Criteria:
-                                </span>
-                                <span className="text-xs font-semibold text-[#444444]">{s.criteria}</span>
-                              </div>
-                            </div>
-                          ),
-                        },
-                      ]}
-                    />
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-16 text-[#666666] font-heading font-bold uppercase tracking-wider">
-                No matching Karnataka or Indian scholarships found.
+              <div className="flex items-center p-1 rounded-xl bg-[#F4F4F0] border border-[#DDDDDD]">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    viewMode === 'grid' ? 'bg-white shadow-soft text-[#111111]' : 'text-[#888888]'
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    viewMode === 'list' ? 'bg-white shadow-soft text-[#111111]' : 'text-[#888888]'
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={3}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
+          {/* Results Grid / List */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#CD0000]" />
+              <span className="text-xs font-heading font-extrabold uppercase text-[#666666]">
+                Searching Scholarships Database...
+              </span>
+            </div>
+          ) : scholarships.length === 0 ? (
+            <Card className="p-12 text-center space-y-3">
+              <h4 className="text-lg font-heading font-extrabold text-[#111111] uppercase">No Scholarships Match Your Query</h4>
+              <p className="text-xs text-[#666666]">Try adjusting search keywords or clearing active filters.</p>
+              <Button onClick={handleResetFilters} variant="secondary" className="text-xs uppercase font-heading">
+                Reset All Filters
+              </Button>
+            </Card>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {scholarships.map((s) => (
+                <Card
+                  key={s._id || s.slug}
+                  className="p-6 flex flex-col justify-between gap-5 hover:shadow-lift transition-all duration-200 border border-[#DDDDDD]"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#CD0000]/10 border border-[#CD0000]/20 flex items-center justify-center text-xl font-bold shrink-0">
+                        {s.logo || '🎓'}
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-heading font-extrabold uppercase bg-[#FFE5E5] text-[#CD0000] border border-[#FFC9C9]">
+                        {s.government_level || 'State'}
+                      </span>
+                    </div>
 
+                    <div>
+                      <h4 className="text-sm font-extrabold font-heading text-[#111111] line-clamp-2 hover:text-[#CD0000] transition-colors">
+                        <Link to={`/scholarships/${s.slug}`}>{s.title}</Link>
+                      </h4>
+                      <p className="text-[11px] text-[#666666] font-medium mt-1 truncate">
+                        {s.provider}
+                      </p>
+                    </div>
+
+                    <p className="text-xs text-[#555555] line-clamp-2 font-sans">
+                      {s.short_description || s.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-3 border-t border-[#EEEEEE]">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-extrabold font-heading text-[#CD0000]">
+                        {s.amount_info?.amount || '₹50,000 / year'}
+                      </span>
+                      <span className="text-[#666666] flex items-center gap-1 text-[11px]">
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        {s.application_info?.end_date || '2026-08-31'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/scholarships/${s.slug}`}
+                        className="flex-1 h-10 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-heading font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        View Scheme
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => handleBookmark(s.title)}
+                        className="p-2.5 rounded-xl bg-[#F4F4F0] hover:bg-[#EEEEEE] text-[#111111] border border-[#DDDDDD] transition-colors cursor-pointer"
+                        title="Bookmark Scheme"
+                      >
+                        <Bookmark className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {scholarships.map((s) => (
+                <Card key={s._id || s.slug} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:shadow-lift transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#CD0000]/10 border border-[#CD0000]/20 flex items-center justify-center text-xl font-bold shrink-0">
+                      {s.logo || '🎓'}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-heading font-extrabold uppercase bg-[#FFE5E5] text-[#CD0000]">
+                          {s.government_level || 'State'}
+                        </span>
+                        <span className="text-xs font-bold text-[#666666]">{s.category}</span>
+                      </div>
+                      <h4 className="text-base font-extrabold font-heading text-[#111111]">
+                        <Link to={`/scholarships/${s.slug}`} className="hover:text-[#CD0000]">
+                          {s.title}
+                        </Link>
+                      </h4>
+                      <p className="text-xs text-[#666666] mt-0.5">{s.provider}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-[#EEEEEE]">
+                    <div className="text-right">
+                      <span className="text-sm font-extrabold font-heading text-[#CD0000] block">
+                        {s.amount_info?.amount || '₹50,000 / year'}
+                      </span>
+                      <span className="text-[11px] text-[#666666]">
+                        Deadline: {s.application_info?.end_date || '2026-08-31'}
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/scholarships/${s.slug}`}
+                      className="h-10 px-5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-heading font-extrabold text-xs uppercase flex items-center gap-1.5 transition-colors"
+                    >
+                      View Details
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {pages > 1 && (
+            <div className="pt-4 flex justify-center">
+              <Pagination
+                currentPage={page}
+                totalPages={pages}
+                onPageChange={(p) => setPage(p)}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

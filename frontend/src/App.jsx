@@ -20,6 +20,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Scholarships from './pages/Scholarships';
+import ScholarshipDetails from './pages/ScholarshipDetails';
 import Recommendations from './pages/Recommendations';
 import Applications from './pages/Applications';
 import Documents from './pages/Documents';
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'profile', element: <Profile /> },
       { path: 'scholarships', element: <Scholarships /> },
+      { path: 'scholarships/:slug', element: <ScholarshipDetails /> },
       { path: 'recommendations', element: <Recommendations /> },
       { path: 'applications', element: <Applications /> },
       { path: 'documents', element: <Documents /> },
