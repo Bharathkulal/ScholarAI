@@ -24,6 +24,12 @@ import {
   CheckCircle2,
   XCircle,
   ShieldCheck,
+  BarChart3,
+  PieChart,
+  Megaphone,
+  History,
+  Settings,
+  Bell,
 } from 'lucide-react';
 import {
   getAdminScholarshipsApi,
@@ -38,11 +44,26 @@ import {
   getAdminApplicationsApi,
   reviewApplicationStatusApi,
 } from '../services/applications';
+import {
+  getAdminDashboardTelemetryApi,
+  getAdminAnalyticsChartsApi,
+  downloadAdminReportApi,
+  getAuditLogsApi,
+  publishAnnouncementApi,
+  getAnnouncementsApi,
+} from '../services/admin';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('scholarships'); // "scholarships" | "applications"
-  
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Telemetry & Analytics state
+  const [telemetry, setTelemetry] = useState(null);
+  const [charts, setCharts] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loadingTelemetry, setLoadingTelemetry] = useState(true);
+
   // Scholarships state
   const [scholarships, setScholarships] = useState([]);
   const [totalSch, setTotalSch] = useState(0);
@@ -60,12 +81,22 @@ const AdminDashboard = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewRemarks, setReviewRemarks] = useState('');
 
-  // Form Modal States
+  // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Announcement Form State
+  const [annTitle, setAnnTitle] = useState('');
+  const [annMessage, setAnnMessage] = useState('');
+  const [annPriority, setAnnPriority] = useState('Normal');
+
+  // Settings State
+  const [activeAiProvider, setActiveAiProvider] = useState('gemini');
+
+  // Scholarship Form State
   const [formData, setFormData] = useState({
     title: '',
     provider: '',
@@ -77,6 +108,27 @@ const AdminDashboard = () => {
     description: '',
     status: 'published',
   });
+
+  const fetchDashboardTelemetry = async () => {
+    setLoadingTelemetry(true);
+    try {
+      const [telRes, chartRes, logRes, annRes] = await Promise.all([
+        getAdminDashboardTelemetryApi(),
+        getAdminAnalyticsChartsApi(),
+        getAuditLogsApi({ limit: 10 }),
+        getAnnouncementsApi(),
+      ]);
+
+      if (telRes && telRes.data) setTelemetry(telRes.data.statistics);
+      if (chartRes && chartRes.data) setCharts(chartRes.data);
+      if (logRes && logRes.data) setAuditLogs(logRes.data.items || []);
+      if (annRes && annRes.data) setAnnouncements(annRes.data.announcements || []);
+    } catch (err) {
+      toast.error('Failed to load dashboard telemetry.');
+    } finally {
+      setLoadingTelemetry(false);
+    }
+  };
 
   const fetchScholarships = async () => {
     setLoadingSch(true);
@@ -117,8 +169,12 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    fetchDashboardTelemetry();
+  }, []);
+
+  useEffect(() => {
     if (activeTab === 'scholarships') fetchScholarships();
-    else fetchApplications();
+    else if (activeTab === 'applications') fetchApplications();
   }, [activeTab, schSearch, schStatusFilter, appSearch, appStatusFilter]);
 
   const handleOpenCreateModal = () => {
@@ -256,421 +312,393 @@ const AdminDashboard = () => {
     }
   };
 
+  const handlePublishAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!annTitle || !annMessage) {
+      toast.error('Title and message are required.');
+      return;
+    }
+    try {
+      await publishAnnouncementApi({
+        title: annTitle,
+        message: annMessage,
+        priority: annPriority,
+        target_audience: { course: 'All', district: 'All', category: 'All' },
+      });
+      toast.success(`Broadcast "${annTitle}" published!`);
+      setIsAnnounceModalOpen(false);
+      setAnnTitle('');
+      setAnnMessage('');
+      fetchDashboardTelemetry();
+    } catch (err) {
+      toast.error('Failed to broadcast announcement.');
+    }
+  };
+
+  const handleReportDownload = async (type, fmt = 'csv') => {
+    try {
+      const res = await downloadAdminReportApi(type, fmt);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${type}_report.${fmt}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(`Downloaded ${type} report as ${fmt.toUpperCase()}!`);
+    } catch (err) {
+      toast.error('Report export failed.');
+    }
+  };
+
   return (
     <div className="space-y-8 select-none w-full pb-16">
       <PageTitle
-        title="Admin Control Center & Verification Portal"
-        description="Manage scholarship catalogs, bulk ingest datasets, and audit student application files."
+        title="Enterprise Admin Control Center"
+        description="Monitor real-time MongoDB telemetry, audit student application files, broadcast announcements, and inspect analytics."
         action={
           <div className="flex items-center gap-3">
-            <Button onClick={() => setIsImportModalOpen(true)} variant="secondary" className="!py-2.5 text-xs font-heading uppercase">
-              <Upload className="w-4 h-4 text-[#CD0000]" />
-              Bulk Import CSV
+            <Button onClick={() => setIsAnnounceModalOpen(true)} variant="secondary" className="!py-2.5 text-xs font-heading uppercase">
+              <Megaphone className="w-4 h-4 text-[#CD0000]" />
+              System Broadcast
             </Button>
 
             <Button onClick={handleOpenCreateModal} variant="primary" className="!py-2.5 text-xs font-heading uppercase">
               <Plus className="w-4 h-4" />
-              Add New Scholarship
+              Add Scholarship
             </Button>
           </div>
         }
       />
 
-      {/* Main Tab Navigation */}
-      <div className="flex items-center gap-3 border-b border-[#EEEEEE] pb-2">
-        <button
-          onClick={() => setActiveTab('scholarships')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-heading font-extrabold uppercase transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'scholarships'
-              ? 'bg-[#111111] text-white shadow-soft'
-              : 'bg-[#F4F4F0] text-[#666666] hover:bg-[#EEEEEE]'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          Scholarships Catalog ({totalSch})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('applications')}
-          className={`px-5 py-2.5 rounded-xl text-xs font-heading font-extrabold uppercase transition-all cursor-pointer flex items-center gap-2 ${
-            activeTab === 'applications'
-              ? 'bg-[#111111] text-white shadow-soft'
-              : 'bg-[#F4F4F0] text-[#666666] hover:bg-[#EEEEEE]'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          Student Applications Audit ({totalApps})
-        </button>
+      {/* 8-Tab Enterprise Navigation Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#EEEEEE]">
+        {[
+          { id: 'dashboard', label: 'Overview Telemetry', icon: BarChart3 },
+          { id: 'scholarships', label: `Scholarships (${totalSch})`, icon: Database },
+          { id: 'applications', label: `Applications (${totalApps})`, icon: Layers },
+          { id: 'analytics', label: 'MongoDB Analytics', icon: PieChart },
+          { id: 'announcements', label: `Broadcasts (${announcements.length})`, icon: Megaphone },
+          { id: 'audit_logs', label: `Audit Feed (${auditLogs.length})`, icon: History },
+          { id: 'settings', label: 'System Settings', icon: Settings },
+        ].map((tab) => {
+          const IconComp = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 rounded-xl text-xs font-heading font-extrabold uppercase transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? 'bg-[#111111] text-white shadow-soft'
+                  : 'bg-[#F4F4F0] text-[#666666] hover:bg-[#EEEEEE]'
+              }`}
+            >
+              <IconComp className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {activeTab === 'scholarships' ? (
-        /* SCHOLARSHIPS MANAGEMENT TAB */
+      {/* TAB 1: OVERVIEW TELEMETRY */}
+      {activeTab === 'dashboard' && (
         <div className="space-y-6">
-          <Card className="p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-72">
-                  <Search className="w-4 h-4 text-[#888888] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Filter scholarships..."
-                    value={schSearch}
-                    onChange={(e) => setSchSearch(e.target.value)}
-                    className="w-full h-10 pl-9 pr-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
-                  />
-                </div>
-
-                <select
-                  value={schStatusFilter}
-                  onChange={(e) => setSchStatusFilter(e.target.value)}
-                  className="h-10 px-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                  <option value="archived">Archived</option>
-                </select>
+          <Grid cols={1} sm={2} lg={4} gap={6}>
+            <Card className="p-6 border-l-4 border-l-[#CD0000]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#666666] font-heading">Total Students</span>
+                <Users className="w-4 h-4 text-[#CD0000]" />
               </div>
-
-              <span className="text-xs font-bold text-[#666666] font-heading">
-                Showing {scholarships.length} Entries
+              <span className="text-3xl font-extrabold font-heading text-[#111111]">
+                {telemetry?.total_students || 0}
               </span>
-            </div>
+            </Card>
 
-            {loadingSch ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-[#CD0000]" />
-                <span className="text-xs font-heading font-bold text-[#666666]">Loading Catalog...</span>
+            <Card className="p-6 border-l-4 border-l-green-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#666666] font-heading">Published Grants</span>
+                <Database className="w-4 h-4 text-green-600" />
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-[#EEEEEE] font-heading uppercase text-[#888888]">
-                      <th className="py-3 px-2 font-extrabold">Scheme Title</th>
-                      <th className="py-3 px-2 font-extrabold">Provider</th>
-                      <th className="py-3 px-2 font-extrabold">Level</th>
-                      <th className="py-3 px-2 font-extrabold">Grant Value</th>
-                      <th className="py-3 px-2 font-extrabold">Deadline</th>
-                      <th className="py-3 px-2 font-extrabold">Status</th>
-                      <th className="py-3 px-2 font-extrabold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EEEEEE]">
-                    {scholarships.map((sch) => (
-                      <tr key={sch._id} className="hover:bg-[#F9F9F7] transition-colors">
-                        <td className="py-3.5 px-2 font-bold text-[#111111]">
-                          {sch.title}
-                          <span className="block text-[10px] font-normal text-[#888888] font-mono">{sch.slug}</span>
-                        </td>
-                        <td className="py-3.5 px-2 text-[#555555] font-medium">{sch.provider}</td>
-                        <td className="py-3.5 px-2">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-heading font-bold bg-[#F4F4F0] text-[#111111]">
-                            {sch.government_level || 'State'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-2 font-bold text-[#CD0000]">
-                          {sch.amount_info?.amount || '₹50,000'}
-                        </td>
-                        <td className="py-3.5 px-2 text-[#555555]">
-                          {sch.application_info?.end_date || '2026-08-31'}
-                        </td>
-                        <td className="py-3.5 px-2">
-                          <button
-                            type="button"
-                            onClick={() => handleTogglePublish(sch)}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-heading font-extrabold cursor-pointer border ${
-                              sch.status === 'published'
-                                ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
-                                : sch.status === 'draft'
-                                ? 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200'
-                                : 'bg-gray-100 text-gray-800 border-gray-200'
-                            }`}
-                          >
-                            {sch.status === 'published' ? 'Published' : sch.status === 'draft' ? 'Draft' : 'Archived'}
-                          </button>
-                        </td>
-                        <td className="py-3.5 px-2 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditModal(sch)}
-                              className="p-1.5 rounded-lg bg-[#F4F4F0] hover:bg-[#EEEEEE] text-[#111111] transition-colors"
-                              title="Edit Scholarship"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleArchive(sch)}
-                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                              title="Archive Scholarship"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Card>
-        </div>
-      ) : (
-        /* APPLICATIONS AUDIT TAB */
-        <div className="space-y-6">
-          <Card className="p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-72">
-                  <Search className="w-4 h-4 text-[#888888] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search application # or title..."
-                    value={appSearch}
-                    onChange={(e) => setAppSearch(e.target.value)}
-                    className="w-full h-10 pl-9 pr-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
-                  />
-                </div>
-
-                <select
-                  value={appStatusFilter}
-                  onChange={(e) => setAppStatusFilter(e.target.value)}
-                  className="h-10 px-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
-                >
-                  <option value="all">All Application Statuses</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-
-              <span className="text-xs font-bold text-[#666666] font-heading">
-                Showing {applications.length} Student Files
+              <span className="text-3xl font-extrabold font-heading text-[#111111]">
+                {telemetry?.published_scholarships || 0}
               </span>
-            </div>
+            </Card>
 
-            {loadingApps ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-[#CD0000]" />
-                <span className="text-xs font-heading font-bold text-[#666666]">Loading Applications...</span>
+            <Card className="p-6 border-l-4 border-l-blue-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#666666] font-heading">Total Applications</span>
+                <Layers className="w-4 h-4 text-blue-600" />
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-[#EEEEEE] font-heading uppercase text-[#888888]">
-                      <th className="py-3 px-2 font-extrabold">Application File ID</th>
-                      <th className="py-3 px-2 font-extrabold">Scholarship Scheme</th>
-                      <th className="py-3 px-2 font-extrabold">Submission Date</th>
-                      <th className="py-3 px-2 font-extrabold">Doc Status</th>
-                      <th className="py-3 px-2 font-extrabold">Audit Status</th>
-                      <th className="py-3 px-2 font-extrabold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EEEEEE]">
-                    {applications.map((app) => (
-                      <tr key={app._id} className="hover:bg-[#F9F9F7] transition-colors">
-                        <td className="py-3.5 px-2 font-bold font-mono text-[#CD0000]">
-                          {app.application_number}
-                        </td>
-                        <td className="py-3.5 px-2 font-bold text-[#111111]">
-                          {app.scholarship_title}
-                          <span className="block text-[10px] font-normal text-[#666666] font-sans">{app.scholarship_provider}</span>
-                        </td>
-                        <td className="py-3.5 px-2 text-[#555555]">
-                          {new Date(app.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-3.5 px-2">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-heading font-bold bg-[#F4F4F0] text-[#111111]">
-                            {app.verification_status || 'Pending'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-2">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-heading font-extrabold border ${
-                            app.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
-                            app.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
-                            app.status === 'under_review' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                            'bg-blue-100 text-blue-800 border-blue-200'
-                          }`}>
-                            {app.status.replace('_', ' ').toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-2 text-right">
-                          <Button
-                            variant="secondary"
-                            onClick={() => { setSelectedApp(app); setIsReviewModalOpen(true); }}
-                            className="!py-1.5 !px-3 text-xs font-heading uppercase"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Inspect File
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <span className="text-3xl font-extrabold font-heading text-[#111111]">
+                {telemetry?.total_applications || 0}
+              </span>
+            </Card>
+
+            <Card className="p-6 border-l-4 border-l-amber-500">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#666666] font-heading">Approval Rate</span>
+                <Award className="w-4 h-4 text-amber-500" />
               </div>
-            )}
+              <span className="text-3xl font-extrabold font-heading text-[#111111]">
+                {telemetry?.approval_rate || 85.0}%
+              </span>
+            </Card>
+          </Grid>
+
+          {/* Quick Export Reports */}
+          <Card className="p-6 space-y-4">
+            <h3 className="text-sm font-extrabold font-heading text-[#111111] uppercase tracking-wide">
+              Quick Export Enterprise Reports
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => handleReportDownload('students', 'csv')} variant="secondary" className="text-xs uppercase font-heading">
+                <Download className="w-3.5 h-3.5" /> Students CSV Report
+              </Button>
+              <Button onClick={() => handleReportDownload('scholarships', 'csv')} variant="secondary" className="text-xs uppercase font-heading">
+                <Download className="w-3.5 h-3.5" /> Scholarships CSV Catalog
+              </Button>
+              <Button onClick={() => handleReportDownload('applications', 'csv')} variant="secondary" className="text-xs uppercase font-heading">
+                <Download className="w-3.5 h-3.5" /> Applications CSV Audit Log
+              </Button>
+            </div>
           </Card>
         </div>
       )}
 
-      {/* Admin Audit Review Modal */}
-      <Modal
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        title={`Review Application File — ${selectedApp?.application_number}`}
-      >
+      {/* TAB 2: SCHOLARSHIPS CATALOG */}
+      {activeTab === 'scholarships' && (
+        <Card className="p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-72">
+                <Search className="w-4 h-4 text-[#888888] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter scholarships..."
+                  value={schSearch}
+                  onChange={(e) => setSchSearch(e.target.value)}
+                  className="w-full h-10 pl-9 pr-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
+                />
+              </div>
+
+              <select
+                value={schStatusFilter}
+                onChange={(e) => setSchStatusFilter(e.target.value)}
+                className="h-10 px-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
+              >
+                <option value="all">All Statuses</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+
+            <span className="text-xs font-bold text-[#666666] font-heading">
+              Showing {scholarships.length} Entries
+            </span>
+          </div>
+
+          {loadingSch ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#CD0000]" />
+              <span className="text-xs font-heading font-bold text-[#666666]">Loading Catalog...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#EEEEEE] font-heading uppercase text-[#888888]">
+                    <th className="py-3 px-2 font-extrabold">Scheme Title</th>
+                    <th className="py-3 px-2 font-extrabold">Provider</th>
+                    <th className="py-3 px-2 font-extrabold">Level</th>
+                    <th className="py-3 px-2 font-extrabold">Grant Value</th>
+                    <th className="py-3 px-2 font-extrabold">Deadline</th>
+                    <th className="py-3 px-2 font-extrabold">Status</th>
+                    <th className="py-3 px-2 font-extrabold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EEEEEE]">
+                  {scholarships.map((sch) => (
+                    <tr key={sch._id} className="hover:bg-[#F9F9F7] transition-colors">
+                      <td className="py-3.5 px-2 font-bold text-[#111111]">{sch.title}</td>
+                      <td className="py-3.5 px-2 text-[#555555]">{sch.provider}</td>
+                      <td className="py-3.5 px-2 font-bold">{sch.government_level || 'State'}</td>
+                      <td className="py-3.5 px-2 font-bold text-[#CD0000]">{sch.amount_info?.amount || '₹50,000'}</td>
+                      <td className="py-3.5 px-2 text-[#555555]">{sch.application_info?.end_date || '2026-08-31'}</td>
+                      <td className="py-3.5 px-2">
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePublish(sch)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-heading font-extrabold cursor-pointer border ${
+                            sch.status === 'published'
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-amber-100 text-amber-800 border-amber-200'
+                          }`}
+                        >
+                          {sch.status === 'published' ? 'Published' : 'Draft'}
+                        </button>
+                      </td>
+                      <td className="py-3.5 px-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button type="button" onClick={() => handleOpenEditModal(sch)} className="p-1.5 rounded-lg bg-[#F4F4F0] hover:bg-[#EEEEEE] text-[#111111]">
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" onClick={() => handleArchive(sch)} className="p-1.5 rounded-lg bg-red-50 text-red-600">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* TAB 3: APPLICATIONS AUDIT */}
+      {activeTab === 'applications' && (
+        <Card className="p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-72">
+                <Search className="w-4 h-4 text-[#888888] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search application # or title..."
+                  value={appSearch}
+                  onChange={(e) => setAppSearch(e.target.value)}
+                  className="w-full h-10 pl-9 pr-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {loadingApps ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#CD0000]" />
+              <span className="text-xs font-heading font-bold text-[#666666]">Loading Applications...</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#EEEEEE] font-heading uppercase text-[#888888]">
+                    <th className="py-3 px-2 font-extrabold">Application File ID</th>
+                    <th className="py-3 px-2 font-extrabold">Scheme Title</th>
+                    <th className="py-3 px-2 font-extrabold">Submission Date</th>
+                    <th className="py-3 px-2 font-extrabold">Status</th>
+                    <th className="py-3 px-2 font-extrabold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EEEEEE]">
+                  {applications.map((app) => (
+                    <tr key={app._id} className="hover:bg-[#F9F9F7] transition-colors">
+                      <td className="py-3.5 px-2 font-bold font-mono text-[#CD0000]">{app.application_number}</td>
+                      <td className="py-3.5 px-2 font-bold text-[#111111]">{app.scholarship_title}</td>
+                      <td className="py-3.5 px-2 text-[#555555]">{new Date(app.created_at).toLocaleDateString()}</td>
+                      <td className="py-3.5 px-2 uppercase font-bold">{app.status}</td>
+                      <td className="py-3.5 px-2 text-right">
+                        <Button variant="secondary" onClick={() => { setSelectedApp(app); setIsReviewModalOpen(true); }} className="!py-1.5 !px-3 text-xs uppercase font-heading">
+                          Inspect File
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* TAB 4: MONGODB ANALYTICS CHARTS */}
+      {activeTab === 'analytics' && charts && (
+        <div className="space-y-6">
+          <Grid cols={1} md={2} gap={6}>
+            <Card className="p-6 space-y-4">
+              <h4 className="text-xs font-extrabold font-heading text-[#111111] uppercase border-b border-[#EEEEEE] pb-2">
+                Category Distribution (MongoDB Aggregation)
+              </h4>
+              <div className="space-y-2 text-xs">
+                {(charts.category_distribution || []).map((cat, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-[#F4F4F0]">
+                    <span>{cat.label}</span>
+                    <strong className="text-[#CD0000]">{cat.count} Students</strong>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6 space-y-4">
+              <h4 className="text-xs font-extrabold font-heading text-[#111111] uppercase border-b border-[#EEEEEE] pb-2">
+                Domicile State Distribution
+              </h4>
+              <div className="space-y-2 text-xs">
+                {(charts.state_distribution || []).map((st, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-[#F4F4F0]">
+                    <span>{st.label}</span>
+                    <strong className="text-[#CD0000]">{st.count} Students</strong>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </Grid>
+        </div>
+      )}
+
+      {/* TAB 5: AUDIT LOGS FEED */}
+      {activeTab === 'audit_logs' && (
+        <Card className="p-6 space-y-4">
+          <h4 className="text-xs font-extrabold font-heading text-[#111111] uppercase border-b border-[#EEEEEE] pb-2">
+            Operational System Audit Logs
+          </h4>
+          <div className="space-y-2 text-xs">
+            {auditLogs.map((log) => (
+              <div key={log._id} className="p-3 rounded-xl bg-[#F9F9F7] border border-[#EEEEEE] flex items-center justify-between">
+                <div>
+                  <span className="font-extrabold font-mono text-[#CD0000] block">{log.action}</span>
+                  <span className="text-[#666666]">Actor: {log.actor_email}</span>
+                </div>
+                <span className="text-[11px] text-[#888888] font-mono">
+                  {new Date(log.timestamp).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Broadcast Modal */}
+      <Modal isOpen={isAnnounceModalOpen} onClose={() => setIsAnnounceModalOpen(false)} title="Broadcast System Announcement">
+        <form onSubmit={handlePublishAnnouncement} className="space-y-4 pt-2">
+          <Input label="Announcement Title" required value={annTitle} onChange={(e) => setAnnTitle(e.target.value)} placeholder="e.g. Karnataka SSP Application Deadline Extended" />
+          <Textarea label="Message Body" required value={annMessage} onChange={(e) => setAnnMessage(e.target.value)} placeholder="Enter details..." />
+          <div className="flex justify-end gap-3 pt-3 border-t border-[#EEEEEE]">
+            <Button type="button" variant="secondary" onClick={() => setIsAnnounceModalOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Broadcast Notification</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Application Review Modal */}
+      <Modal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} title={`Review File — ${selectedApp?.application_number}`}>
         {selectedApp && (
           <div className="space-y-4 pt-1 text-xs">
-            <div className="p-3 rounded-xl bg-[#F4F4F0] border border-[#DDDDDD] space-y-1">
-              <p className="font-bold text-[#111111]">{selectedApp.scholarship_title}</p>
-              <p className="text-[#666666]">Applicant ID: <strong>{selectedApp.student_id}</strong></p>
-              <p className="text-[#666666]">Current Audit Status: <strong className="uppercase">{selectedApp.status}</strong></p>
+            <div className="p-3 rounded-xl bg-[#F4F4F0] border border-[#DDDDDD]">
+              <p className="font-bold">{selectedApp.scholarship_title}</p>
+              <p className="text-[#666666]">Status: {selectedApp.status}</p>
             </div>
-
-            {/* Frozen Profile Snapshot Summary */}
-            <div className="p-3 rounded-xl bg-[#FFE5E5] border border-[#FFC9C9] space-y-1">
-              <h5 className="font-heading font-extrabold text-[#CD0000] uppercase">Frozen Profile Credentials</h5>
-              <p>State Domicile: <strong>{selectedApp.snapshot?.personal?.address?.state || 'Karnataka'}</strong></p>
-              <p>Category: <strong>{selectedApp.snapshot?.eligibility?.category || 'OBC'}</strong></p>
-              <p>Academic Score: <strong>{selectedApp.snapshot?.academic?.cgpa || '9.2'} CGPA</strong></p>
-            </div>
-
-            <Textarea
-              label="Verification Officer Remarks & Notes"
-              value={reviewRemarks}
-              onChange={(e) => setReviewRemarks(e.target.value)}
-              placeholder="Enter official review comments or rejection rationale..."
-            />
-
+            <Textarea label="Officer Remarks" value={reviewRemarks} onChange={(e) => setReviewRemarks(e.target.value)} />
             <div className="flex justify-end gap-3 pt-3 border-t border-[#EEEEEE]">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => handleReviewStatus('rejected')}
-                className="!bg-red-50 text-red-700 hover:!bg-red-100 text-xs uppercase font-heading"
-              >
-                <XCircle className="w-4 h-4" /> Reject Application
-              </Button>
-
-              <Button
-                type="button"
-                variant="primary"
-                onClick={() => handleReviewStatus('approved')}
-                className="!bg-green-700 hover:!bg-green-800 text-xs uppercase font-heading"
-              >
-                <CheckCircle2 className="w-4 h-4" /> Approve Application
-              </Button>
+              <Button type="button" variant="secondary" onClick={() => handleReviewStatus('rejected')}>Reject</Button>
+              <Button type="button" variant="primary" onClick={() => handleReviewStatus('approved')}>Approve</Button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Scholarship Form Modal */}
-      <Modal
-        isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        title={editingId ? 'Edit Scholarship Entry' : 'Create New Scholarship Scheme'}
-      >
-        <form onSubmit={handleFormSubmit} className="space-y-4 pt-2">
-          <Input
-            label="Scholarship Title"
-            required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="e.g. Karnataka Post-Matric State Scholarship (SSP)"
-          />
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Provider Organization"
-              required
-              value={formData.provider}
-              onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-              placeholder="e.g. Govt of Karnataka"
-            />
-
-            <div>
-              <label className="block text-xs font-heading font-extrabold text-[#111111] uppercase mb-1">Government Level</label>
-              <select
-                value={formData.government_level}
-                onChange={(e) => setFormData({ ...formData, government_level: e.target.value })}
-                className="w-full h-11 px-3 rounded-xl border border-[#DDDDDD] text-xs font-medium text-[#111111]"
-              >
-                <option value="State">State Level</option>
-                <option value="Central">Central Level</option>
-                <option value="Private">Private / Corporate</option>
-                <option value="NGO">NGO / Trust</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Grant Value / Amount"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              placeholder="e.g. ₹50,000 / year"
-            />
-
-            <Input
-              label="Application Deadline Date"
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-            />
-          </div>
-
-          <Input
-            label="Official Apply Website URL"
-            value={formData.official_apply_url}
-            onChange={(e) => setFormData({ ...formData, official_apply_url: e.target.value })}
-            placeholder="https://ssp.postmatric.karnataka.gov.in"
-          />
-
-          <Textarea
-            label="Description Overview"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Detailed scholarship criteria, benefits, and guidelines..."
-          />
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#EEEEEE]">
-            <Button type="button" variant="secondary" onClick={() => setIsFormModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" isLoading={submitting}>
-              {editingId ? 'Save Changes' : 'Publish Scholarship'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* CSV Bulk Import Modal */}
-      <Modal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        title="Bulk Import Scholarships from CSV"
-      >
-        <div className="space-y-4 pt-2">
-          <p className="text-xs text-[#666666]">
-            Select a <strong>.csv</strong> file containing scholarship titles, providers, grant amounts, deadlines, and descriptions.
-          </p>
-
-          <label className="w-full h-24 border-2 border-dashed border-[#DDDDDD] hover:border-[#CD0000] rounded-[16px] flex flex-col items-center justify-center gap-2 cursor-pointer bg-[#F9F9F7] transition-all">
-            <Upload className="w-6 h-6 text-[#CD0000]" />
-            <span className="text-xs font-heading font-extrabold uppercase text-[#111111]">
-              Click to Choose CSV File
-            </span>
-            <input type="file" accept=".csv" onChange={handleCsvImport} className="hidden" />
-          </label>
-        </div>
-      </Modal>
     </div>
   );
 };

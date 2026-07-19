@@ -1,5 +1,5 @@
 import logging
-from pymongo import IndexModel, ASCENDING, TEXT
+from pymongo import IndexModel, ASCENDING, DESCENDING, TEXT
 from app.database.mongodb import db_manager
 
 logger = logging.getLogger(__name__)
@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 async def create_indexes() -> None:
     """
     Creates necessary MongoDB indexes on startup across users, scholarships,
-    applications, and saved_scholarships collections.
+    applications, saved_scholarships, audit_logs, and announcements collections.
     """
     db = db_manager.db
     if db is None:
@@ -58,6 +58,19 @@ async def create_indexes() -> None:
             IndexModel([("student_id", ASCENDING)], name="idx_saved_student_id")
         ]
         await db.saved_scholarships.create_indexes(saved_indexes)
+
+        # 5. Audit Logs Indexes
+        audit_indexes = [
+            IndexModel([("timestamp", DESCENDING)], name="idx_audit_timestamp"),
+            IndexModel([("actor_email", ASCENDING)], name="idx_audit_actor")
+        ]
+        await db.audit_logs.create_indexes(audit_indexes)
+
+        # 6. Announcements Indexes
+        announcement_indexes = [
+            IndexModel([("created_at", DESCENDING)], name="idx_announcement_date")
+        ]
+        await db.announcements.create_indexes(announcement_indexes)
 
         logger.info("Database index validation complete.")
     except Exception as e:

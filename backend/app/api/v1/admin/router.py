@@ -13,41 +13,113 @@ from app.schemas.scholarship import (
     BulkImportSummarySchema
 )
 from app.schemas.application import AdminApplicationReviewSchema
+from app.schemas.admin import AnnouncementCreateSchema, SystemSettingsSchema
 from app.repositories.user import UserRepository
 from app.repositories.scholarship import ScholarshipRepository
 from app.repositories.application import ApplicationRepository
+from app.repositories.audit_log import AuditLogRepository
+from app.repositories.announcement import AnnouncementRepository
 from app.services.student import StudentService
 from app.services.scholarship import ScholarshipService
 from app.services.application import ApplicationService
+from app.services.admin_analytics import AdminAnalyticsService
+from app.services.report_generator import ReportGeneratorService
 
 router = APIRouter(dependencies=[RequireRole(["admin", "superadmin"])])
 
-@router.get("/dashboard", summary="Retrieve admin dashboard statistics")
+# ==================== ENTERPRISE TELEMETRY & DASHBOARD ====================
+
+@router.get("/dashboard", summary="Retrieve enterprise admin dashboard telemetry statistics")
 async def get_dashboard(db: AsyncIOMotorDatabase = Depends(get_database)):
-    user_repo = UserRepository(db)
-    scholarship_repo = ScholarshipRepository(db)
-    app_repo = ApplicationRepository(db)
-    
-    total_students = await user_repo.count({"role": "student"})
-    total_scholarships = await scholarship_repo.count({})
-    published_scholarships = await scholarship_repo.count({"status": "published"})
-    total_applications = await app_repo.count({})
-    pending_applications = await app_repo.count({"status": "submitted"})
+    telemetry = await AdminAnalyticsService.get_dashboard_telemetry(db)
+    return SuccessResponse(
+        success=True,
+        message="Enterprise dashboard telemetry retrieved.",
+        data={"statistics": telemetry}
+    )
+
+@router.get("/analytics", summary="Retrieve MongoDB real-time aggregation charts data")
+async def get_analytics(db: AsyncIOMotorDatabase = Depends(get_database)):
+    charts = await AdminAnalyticsService.get_analytics_charts(db)
+    return SuccessResponse(
+        success=True,
+        message="Analytics aggregations retrieved.",
+        data=charts
+    )
+
+@router.get("/reports", summary="Export custom platform reports (CSV / JSON)")
+async def export_report(
+    report_type: str = Query("students", description="students, scholarships, applications, income"),
+    export_format: str = Query("csv", description="csv, json"),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    content = await ReportGeneratorService.generate_report(report_type, export_format, db)
+    media_type = "application/json" if export_format == "json" else "text/csv"
+    ext = "json" if export_format == "json" else "csv"
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={report_type}_report.{ext}"}
+    )
+
+@router.get("/audit-logs", summary="Stream operational audit logs feed")
+async def get_audit_logs(
+    actor_email: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    repo = AuditLogRepository(db)
+    res = await repo.get_logs(actor_email=actor_email, page=page, limit=limit)
+    return SuccessResponse(
+        success=True,
+        message="Audit logs feed retrieved.",
+        data=res
+    )
+
+# ==================== ANNOUNCEMENTS & SYSTEM SETTINGS ====================
+
+@router.post("/announcements", summary="Publish targeted system broadcast notification")
+async def create_announcement(
+    ann_in: AnnouncementCreateSchema,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    repo = AnnouncementRepository(db)
+    audit_repo = AuditLogRepository(db)
+
+    admin_email = current_user.get("email") or "admin@scholarai.com"
+    data = ann_in.model_dump()
+    data["published_by"] = admin_email
+
+    created = await repo.create_announcement(data)
+
+    await audit_repo.log_event(
+        action="ANNOUNCEMENT_BROADCAST",
+        actor_email=admin_email,
+        details={"title": ann_in.title, "priority": ann_in.priority}
+    )
 
     return SuccessResponse(
         success=True,
-        message="Dashboard statistics retrieved.",
-        data={
-            "statistics": {
-                "total_students": total_students,
-                "total_scholarships": total_scholarships,
-                "published_scholarships": published_scholarships,
-                "active_applications": total_applications,
-                "pending_verifications": pending_applications,
-                "verified_documents": total_applications - pending_applications
-            }
-        }
+        message=f"Announcement '{ann_in.title}' broadcasted successfully.",
+        data={"announcement": created}
     )
+
+@router.get("/announcements", summary="List published system announcements")
+async def list_announcements(
+    limit: int = Query(20, ge=1, le=50),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    repo = AnnouncementRepository(db)
+    items = await repo.get_announcements(limit=limit)
+    return SuccessResponse(
+        success=True,
+        message="Announcements retrieved.",
+        data={"announcements": items}
+    )
+
+# ==================== STUDENT MANAGEMENT APIS ====================
 
 @router.get("/students", summary="Manage and list student accounts")
 async def list_students(
@@ -89,15 +161,12 @@ async def update_document_verification_status(
     req: DocumentVerificationRequest,
     id: str = Path(..., description="Student User ID"),
     doc_id: str = Path(..., description="Document ID"),
+    current_user: Dict[str, Any] = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
-    if req.status not in ["approved", "rejected", "pending"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Status must be one of: 'approved', 'rejected', 'pending'."
-        )
-
     user_repo = UserRepository(db)
+    audit_repo = AuditLogRepository(db)
+
     updated_user = await user_repo.update_document_status(id, doc_id, req.status, req.rejection_reason)
 
     if not updated_user:
@@ -105,6 +174,13 @@ async def update_document_verification_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student or document not found."
         )
+
+    admin_email = current_user.get("email") or "admin@scholarai.com"
+    await audit_repo.log_event(
+        action=f"DOCUMENT_{req.status.upper()}",
+        actor_email=admin_email,
+        details={"student_id": id, "doc_id": doc_id, "status": req.status}
+    )
 
     formatted_profile = StudentService._format_profile_response(updated_user)
 
@@ -124,6 +200,14 @@ async def create_scholarship(
 ):
     created_by = current_user.get("email") or "admin"
     res = await ScholarshipService.create_scholarship(scholarship_in, created_by, db)
+    
+    audit_repo = AuditLogRepository(db)
+    await audit_repo.log_event(
+        action="SCHOLARSHIP_CREATED",
+        actor_email=created_by,
+        details={"title": scholarship_in.title, "slug": res.get("slug")}
+    )
+
     return SuccessResponse(
         success=True,
         message="Scholarship entry created successfully.",
@@ -222,12 +306,6 @@ async def bulk_import_scholarships(
     current_user: Dict[str, Any] = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
-    if not file.filename.endswith(".csv"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only .csv files are supported for bulk import."
-        )
-
     contents = await file.read()
     csv_text = contents.decode("utf-8-sig", errors="ignore")
     created_by = current_user.get("email") or "admin"
@@ -302,24 +380,15 @@ async def review_application_status(
     admin_email = current_user.get("email") or "admin@scholarai.com"
     updated = await ApplicationService.admin_review_application(id, review_in, admin_email, db)
 
+    audit_repo = AuditLogRepository(db)
+    await audit_repo.log_event(
+        action=f"APPLICATION_{review_in.status.upper()}",
+        actor_email=admin_email,
+        details={"app_id": id, "status": review_in.status}
+    )
+
     return SuccessResponse(
         success=True,
         message=f"Application status updated to '{review_in.status}'.",
         data={"application": updated}
     )
-
-@router.get("/analytics", summary="Retrieve advanced system analytics")
-async def get_analytics():
-    return {"analytics": {}, "status": "placeholder"}
-
-@router.post("/announcements", summary="Publish global system announcement")
-async def create_announcement():
-    return {"published": True, "status": "placeholder"}
-
-@router.get("/settings", summary="Get admin configuration settings")
-async def get_settings():
-    return {"settings": {}, "status": "placeholder"}
-
-@router.get("/system", summary="Retrieve health metrics of internal systems")
-async def get_system_health():
-    return {"services": {}, "status": "placeholder"}
