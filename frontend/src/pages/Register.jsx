@@ -157,12 +157,13 @@ const Register = () => {
       </div>
 
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
           <FormInput
             name="fullName"
             label="Full Name"
             placeholder="Jane Doe"
             icon={User}
+            autoComplete="off"
             required
           />
 
@@ -171,6 +172,7 @@ const Register = () => {
             label="Email Address"
             placeholder="name@example.com"
             icon={Mail}
+            autoComplete="off"
             required
           />
 
@@ -180,6 +182,7 @@ const Register = () => {
             type="password"
             placeholder="••••••••"
             icon={Lock}
+            autoComplete="new-password"
             required
           />
 
@@ -189,6 +192,7 @@ const Register = () => {
             type="password"
             placeholder="••••••••"
             icon={Lock}
+            autoComplete="new-password"
             required
           />
 

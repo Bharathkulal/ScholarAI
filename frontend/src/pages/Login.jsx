@@ -178,12 +178,13 @@ const Login = () => {
       </div>
 
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
           <FormInput
             name="email"
             label="Email Address"
             placeholder="student@scholarai.com"
             icon={Mail}
+            autoComplete="off"
             required
           />
 
@@ -193,6 +194,7 @@ const Login = () => {
             type="password"
             placeholder="••••••••"
             icon={Lock}
+            autoComplete="new-password"
             required
           />
 
