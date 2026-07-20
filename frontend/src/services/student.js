@@ -2,12 +2,12 @@ import api from './api';
 
 export const getStudentProfileApi = async () => {
   const response = await api.get('/students/profile');
-  return response.data;
+  return response;
 };
 
 export const updateStudentProfileApi = async (profileData) => {
   const response = await api.put('/students/profile', profileData);
-  return response.data;
+  return response;
 };
 
 export const uploadAvatarApi = async (file) => {
@@ -19,7 +19,7 @@ export const uploadAvatarApi = async (file) => {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  return response;
 };
 
 export const uploadDocumentApi = async (file, type, title = '') => {
@@ -35,7 +35,7 @@ export const uploadDocumentApi = async (file, type, title = '') => {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  return response;
 };
 
 export const deleteDocumentApi = async (documentId) => {
@@ -45,10 +45,10 @@ export const deleteDocumentApi = async (documentId) => {
 
 export const getProfileCompletionApi = async () => {
   const response = await api.get('/students/profile/completion');
-  return response.data;
+  return response;
 };
 
 export const getEligibilityEvaluationApi = async () => {
   const response = await api.get('/students/profile/eligibility');
-  return response.data;
+  return response;
 };
