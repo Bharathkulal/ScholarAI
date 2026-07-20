@@ -9,18 +9,18 @@ class UserRepository(BaseRepository):
         super().__init__(db, collection_name="users")
 
     async def get_by_email(self, email: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not email:
+        if self.collection is None or not email:
             return None
         # Case-insensitive email query
         return await self.collection.find_one({"email": email.strip().lower()})
 
     async def get_by_google_id(self, google_id: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not google_id:
+        if self.collection is None or not google_id:
             return None
         return await self.collection.find_one({"google_id": google_id})
 
     async def get_by_reset_token(self, token: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not token:
+        if self.collection is None or not token:
             return None
         now = datetime.now(timezone.utc)
         return await self.collection.find_one({
@@ -143,35 +143,35 @@ class UserRepository(BaseRepository):
         return await self.update(user_id, update_data)
 
     async def update_last_login(self, user_id: str) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$set": {"last_login": datetime.now(timezone.utc)}}
             )
 
     async def store_refresh_token(self, user_id: str, refresh_token: str) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$addToSet": {"refresh_tokens": refresh_token}}
             )
 
     async def remove_refresh_token(self, user_id: str, refresh_token: str) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$pull": {"refresh_tokens": refresh_token}}
             )
 
     async def clear_all_refresh_tokens(self, user_id: str) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$set": {"refresh_tokens": []}}
             )
 
     async def store_reset_token(self, user_id: str, token: str, expires_at: datetime) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$set": {
@@ -181,7 +181,7 @@ class UserRepository(BaseRepository):
             )
 
     async def clear_reset_token(self, user_id: str) -> None:
-        if self.collection and ObjectId.is_valid(user_id):
+        if self.collection is not None and ObjectId.is_valid(user_id):
             await self.collection.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$unset": {
@@ -191,7 +191,7 @@ class UserRepository(BaseRepository):
             )
 
     async def add_user_document(self, user_id: str, doc_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(user_id):
+        if self.collection is None or not ObjectId.is_valid(user_id):
             return None
         from pymongo import ReturnDocument
         return await self.collection.find_one_and_update(
@@ -204,7 +204,7 @@ class UserRepository(BaseRepository):
         )
 
     async def delete_user_document(self, user_id: str, doc_id: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(user_id):
+        if self.collection is None or not ObjectId.is_valid(user_id):
             return None
         from pymongo import ReturnDocument
         return await self.collection.find_one_and_update(
@@ -219,7 +219,7 @@ class UserRepository(BaseRepository):
     async def update_document_status(
         self, user_id: str, doc_id: str, status_val: str, rejection_reason: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(user_id):
+        if self.collection is None or not ObjectId.is_valid(user_id):
             return None
         from pymongo import ReturnDocument
         return await self.collection.find_one_and_update(
@@ -235,7 +235,7 @@ class UserRepository(BaseRepository):
         )
 
     async def update_avatar(self, user_id: str, avatar_url: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(user_id):
+        if self.collection is None or not ObjectId.is_valid(user_id):
             return None
         from pymongo import ReturnDocument
         return await self.collection.find_one_and_update(

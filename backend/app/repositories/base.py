@@ -10,7 +10,7 @@ class BaseRepository:
 
     async def get_by_id(self, id: str) -> Optional[Dict[str, Any]]:
         """Finds a single document by its ObjectId string representation."""
-        if not self.collection or not ObjectId.is_valid(id):
+        if self.collection is None or not ObjectId.is_valid(id):
             return None
         return await self.collection.find_one({"_id": ObjectId(id)})
 
@@ -22,7 +22,7 @@ class BaseRepository:
         sort: List[tuple] = None
     ) -> List[Dict[str, Any]]:
         """Retrieves a list of documents matching the search query with pagination."""
-        if not self.collection:
+        if self.collection is None:
             return []
         query = query or {}
         cursor = self.collection.find(query).skip(skip).limit(limit)
@@ -32,7 +32,7 @@ class BaseRepository:
 
     async def create(self, document: Dict[str, Any]) -> Dict[str, Any]:
         """Inserts a new document into the collection."""
-        if not self.collection:
+        if self.collection is None:
             raise RuntimeError("Database connection not established")
         result = await self.collection.insert_one(document)
         document["_id"] = result.inserted_id
@@ -40,7 +40,7 @@ class BaseRepository:
 
     async def update(self, id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Updates and returns the modified document by its id."""
-        if not self.collection or not ObjectId.is_valid(id):
+        if self.collection is None or not ObjectId.is_valid(id):
             return None
         
         # Ensure we return the updated document
@@ -54,14 +54,14 @@ class BaseRepository:
 
     async def delete(self, id: str) -> bool:
         """Removes a document from the collection by its id."""
-        if not self.collection or not ObjectId.is_valid(id):
+        if self.collection is None or not ObjectId.is_valid(id):
             return False
         result = await self.collection.delete_one({"_id": ObjectId(id)})
         return result.deleted_count > 0
 
     async def count(self, query: Dict[str, Any] = None) -> int:
         """Counts the total number of documents matching a query."""
-        if not self.collection:
+        if self.collection is None:
             return 0
         query = query or {}
         return await self.collection.count_documents(query)
