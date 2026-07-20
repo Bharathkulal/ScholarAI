@@ -54,6 +54,7 @@ class AuthService:
         user_dict = user_in.model_dump()
         user_dict.pop("password", None)
         user_dict["password_hash"] = password_hash
+        user_dict["role"] = "student"  # Public registration is strictly student role
         user_dict["provider"] = "email"
         user_dict["is_email_verified"] = False
         user_dict["profile_completion"] = 50

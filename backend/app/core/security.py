@@ -131,7 +131,18 @@ class RoleChecker:
         self.allowed_roles = allowed_roles
 
     def __call__(self, current_user: Dict[str, Any] = Depends(get_current_active_user)) -> Dict[str, Any]:
-        if current_user.get("role") not in self.allowed_roles:
+        user_role = current_user.get("role")
+        # Normalize legacy 'superadmin' string to 'super_admin'
+        if user_role == "superadmin":
+            user_role = "super_admin"
+            
+        normalized_allowed = [r if r != "superadmin" else "super_admin" for r in self.allowed_roles]
+        
+        # Super admin has global access to all endpoints
+        if user_role == "super_admin":
+            return current_user
+
+        if user_role not in normalized_allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have authorization to perform this action."
@@ -141,3 +152,8 @@ class RoleChecker:
 def RequireRole(roles: List[str]):
     """Helper alias for role verification dependency."""
     return Depends(RoleChecker(roles))
+
+require_student = RequireRole(["student"])
+require_admin = RequireRole(["admin"])
+require_super_admin = RequireRole(["super_admin"])
+

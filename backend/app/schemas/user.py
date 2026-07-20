@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr, Field
 class UserBase(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
-    role: str = Field(default="student", description="Role of user: student, admin, superadmin")
+    role: str = Field(default="student", description="Role of user: student, admin, super_admin")
     avatar: Optional[str] = None
     phone: Optional[str] = None
     state: Optional[str] = None

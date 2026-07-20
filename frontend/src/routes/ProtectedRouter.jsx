@@ -12,9 +12,16 @@ const ProtectedRouter = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length > 0 && (!user || !allowedRoles.includes(user.role))) {
-    // Show 403 Forbidden Access Page
-    return <Error403 />;
+  if (allowedRoles.length > 0 && user) {
+    const userRole = user.role === 'superadmin' ? 'super_admin' : user.role;
+    const isAllowed = allowedRoles.some((role) => {
+      const normRole = role === 'superadmin' ? 'super_admin' : role;
+      return normRole === userRole || userRole === 'super_admin';
+    });
+
+    if (!isAllowed) {
+      return <Error403 />;
+    }
   }
 
   return children;

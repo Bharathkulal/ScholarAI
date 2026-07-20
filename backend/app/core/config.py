@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # Default Seed Credentials
+    DEFAULT_ADMIN_EMAIL: str = "admin@scholarai.com"
+    DEFAULT_ADMIN_PASSWORD: str = "Admin@123"
+    DEFAULT_SUPER_ADMIN_EMAIL: str = "superadmin@scholarai.com"
+    DEFAULT_SUPER_ADMIN_PASSWORD: str = "SuperAdmin@123"
+
     
     # Database Configurations
     MONGODB_URI: str = "mongodb://localhost:27017"

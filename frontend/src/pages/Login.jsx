@@ -87,10 +87,12 @@ const Login = () => {
                   access_token: tokenResponse.access_token,
                 });
                 toast.success(`Welcome, ${profile.full_name}! Signed in via Google.`, { id: 'google-login' });
-                if (profile.role === 'admin' || profile.role === 'superadmin') {
-                  navigate('/admin');
+                if (profile.role === 'super_admin' || profile.role === 'superadmin') {
+                  navigate('/super-admin/dashboard');
+                } else if (profile.role === 'admin') {
+                  navigate('/admin/dashboard');
                 } else {
-                  navigate('/dashboard');
+                  navigate('/student/dashboard');
                 }
               } catch (err) {
                 toast.error(err.message || 'Google authentication failed.', { id: 'google-login' });
@@ -115,23 +117,17 @@ const Login = () => {
     try {
       const profile = await login(data.email, data.password);
       toast.success(`Welcome back, ${profile.full_name}!`);
-      if (profile.role === 'admin' || profile.role === 'superadmin') {
-        navigate('/admin');
+      
+      const role = profile.role || 'student';
+      if (role === 'super_admin' || role === 'superadmin') {
+        navigate('/super-admin/dashboard');
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate('/student/dashboard');
       }
     } catch (e) {
       toast.error(e.message || 'Login failed. Please check credentials.');
-    }
-  };
-
-  const handleQuickPrefill = (role) => {
-    if (role === 'admin') {
-      methods.setValue('email', 'admin@scholarai.com');
-      methods.setValue('password', 'admin123');
-    } else {
-      methods.setValue('email', 'student@scholarai.com');
-      methods.setValue('password', 'student123');
     }
   };
 
@@ -182,7 +178,7 @@ const Login = () => {
           <FormInput
             name="email"
             label="Email Address"
-            placeholder="student@scholarai.com"
+            placeholder="name@example.com"
             icon={Mail}
             autoComplete="off"
             required
@@ -207,32 +203,6 @@ const Login = () => {
           </Button>
         </form>
       </FormProvider>
-
-      <div className="relative my-1">
-        <div className="absolute inset-0 flex items-center" aria-hidden="true">
-          <div className="w-full border-t border-[#DDDDDD]" />
-        </div>
-        <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-heading font-bold">
-          <span className="bg-white px-3 text-[#888888]">Quick Demo Login</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="secondary"
-          className="text-xs font-heading uppercase tracking-wider !py-2.5 min-h-[44px]"
-          onClick={() => handleQuickPrefill('student')}
-        >
-          Prefill Student
-        </Button>
-        <Button
-          variant="secondary"
-          className="text-xs font-heading uppercase tracking-wider !py-2.5 min-h-[44px]"
-          onClick={() => handleQuickPrefill('admin')}
-        >
-          Prefill Admin
-        </Button>
-      </div>
 
       <p className="text-center text-xs text-[#666666] mt-1">
         Don't have an account?{' '}

@@ -11,6 +11,7 @@ import PublicLayout from './layouts/PublicLayout';
 import StudentLayout from './layouts/StudentLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AuthLayout from './layouts/AuthLayout';
+import SuperAdminLayout from './layouts/SuperAdminLayout';
 
 // Routes & Pages
 import ProtectedRouter from './routes/ProtectedRouter';
@@ -27,6 +28,7 @@ import Documents from './pages/Documents';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import NotFound from './pages/NotFound';
 
 const router = createBrowserRouter([
@@ -53,11 +55,12 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <ProtectedRouter allowedRoles={['student', 'admin']}>
+      <ProtectedRouter allowedRoles={['student', 'admin', 'super_admin']}>
         <StudentLayout />
       </ProtectedRouter>
     ),
     children: [
+      { path: 'student/dashboard', element: <Dashboard /> },
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'profile', element: <Profile /> },
       { path: 'scholarships', element: <Scholarships /> },
@@ -74,12 +77,27 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <ProtectedRouter allowedRoles={['admin']}>
+      <ProtectedRouter allowedRoles={['admin', 'super_admin']}>
         <AdminLayout />
       </ProtectedRouter>
     ),
     children: [
+      { path: 'admin/dashboard', element: <AdminDashboard /> },
       { path: 'admin', element: <AdminDashboard /> },
+    ],
+  },
+
+  // Super Admin Portal console pages
+  {
+    path: '/',
+    element: (
+      <ProtectedRouter allowedRoles={['super_admin']}>
+        <SuperAdminLayout />
+      </ProtectedRouter>
+    ),
+    children: [
+      { path: 'super-admin/dashboard', element: <SuperAdminDashboard /> },
+      { path: 'super-admin', element: <SuperAdminDashboard /> },
     ],
   },
 

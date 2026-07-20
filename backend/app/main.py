@@ -13,6 +13,7 @@ from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.rate_limiter import RateLimiterMiddleware
 from app.database.mongodb import db_manager, get_database
 from app.database.indexes import create_indexes
+from app.database.seed import seed_initial_roles_and_users
 from app.middleware.error_handler import (
     global_exception_handler,
     http_exception_handler,
@@ -31,10 +32,12 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing server startup routines...")
     await db_manager.connect()
     await create_indexes()
+    await seed_initial_roles_and_users(db_manager.db)
     yield
     # Shutdown actions
     logger.info("Initializing server shutdown routines...")
     await db_manager.close()
+
 
 # Initialize FastAPI App
 app = FastAPI(

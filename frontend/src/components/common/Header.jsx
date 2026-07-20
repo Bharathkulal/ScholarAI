@@ -92,18 +92,14 @@ export const Header = ({ onMenuClick, onAiAssistantClick, className = '' }) => {
             </span>
           </Link>
 
-          {/* Quick Demo Role Switcher */}
-          <div className="hidden lg:flex items-center gap-2">
-            <select
-              value={user?.role || ''}
-              onChange={handleRoleSelect}
-              className="text-xs font-bold font-heading uppercase bg-white border border-[#DDDDDD] text-[#111111] rounded-[14px] px-3 py-2 focus:outline-none focus:border-[#CD0000] cursor-pointer shadow-sm"
-            >
-              <option value="">Guest (Public)</option>
-              <option value="student">Student Portal</option>
-              <option value="admin">Admin Console</option>
-            </select>
-          </div>
+          {/* User Role Badge */}
+          {user && (
+            <div className="hidden lg:flex items-center">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest font-heading px-2.5 py-1 rounded-[12px] bg-[#EFEDE6] border border-[#DDDDDD] text-[#111111]">
+                {user.role === 'super_admin' || user.role === 'superadmin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Student'}
+              </span>
+            </div>
+          )}
 
           {/* User Profile Info */}
           {user ? (

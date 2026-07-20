@@ -5,7 +5,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6, description="Password must be at least 6 characters")
     full_name: str = Field(..., min_length=2, max_length=100)
-    role: str = Field(default="student", pattern="^(student|admin|superadmin)$")
+    role: str = Field(default="student", pattern="^(student|admin|super_admin|superadmin)$")
     phone: Optional[str] = None
     state: Optional[str] = None
     district: Optional[str] = None
@@ -17,6 +17,22 @@ class UserCreate(BaseModel):
     income: Optional[str] = None
     gender: Optional[str] = None
     dob: Optional[str] = None
+
+class AdminUserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6, description="Password must be at least 6 characters")
+    full_name: str = Field(..., min_length=2, max_length=100)
+    phone: Optional[str] = None
+    role: str = Field(default="admin", pattern="^(admin|super_admin)$")
+
+class AdminUserUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=100)
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class AdminPasswordReset(BaseModel):
+    new_password: str = Field(..., min_length=6)
+
 
 class UserLogin(BaseModel):
     email: EmailStr
