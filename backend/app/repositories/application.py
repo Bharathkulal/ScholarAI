@@ -10,14 +10,14 @@ class ApplicationRepository(BaseRepository):
         super().__init__(db, collection_name="applications")
 
     async def get_by_number(self, application_number: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not application_number:
+        if self.collection is None or not application_number:
             return None
         return await self.collection.find_one({"application_number": application_number})
 
     async def get_by_student_and_scholarship(
         self, student_id: str, scholarship_id: str
     ) -> Optional[Dict[str, Any]]:
-        if not self.collection:
+        if self.collection is None:
             return None
         return await self.collection.find_one({
             "student_id": student_id,
@@ -52,7 +52,7 @@ class ApplicationRepository(BaseRepository):
     async def find_by_student(
         self, student_id: str, status_val: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        if not self.collection:
+        if self.collection is None:
             return []
         match_query = {"student_id": student_id}
         if status_val:
@@ -71,7 +71,7 @@ class ApplicationRepository(BaseRepository):
         page: int = 1,
         limit: int = 20
     ) -> Dict[str, Any]:
-        if not self.collection:
+        if self.collection is None:
             return {"items": [], "total": 0, "page": page, "limit": limit, "pages": 0}
 
         match_query: Dict[str, Any] = {}
@@ -114,7 +114,7 @@ class ApplicationRepository(BaseRepository):
         remarks: Optional[str],
         history_event: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(id):
+        if self.collection is None or not ObjectId.is_valid(id):
             return None
 
         now = datetime.now(timezone.utc)
@@ -138,7 +138,7 @@ class ApplicationRepository(BaseRepository):
         return updated
 
     async def cancel_application(self, id: str, student_id: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not ObjectId.is_valid(id):
+        if self.collection is None or not ObjectId.is_valid(id):
             return None
 
         now = datetime.now(timezone.utc)

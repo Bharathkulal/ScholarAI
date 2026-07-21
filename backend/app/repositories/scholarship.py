@@ -10,7 +10,7 @@ class ScholarshipRepository(BaseRepository):
         super().__init__(db, collection_name="scholarships")
 
     async def get_by_slug(self, slug: str) -> Optional[Dict[str, Any]]:
-        if not self.collection or not slug:
+        if self.collection is None or not slug:
             return None
         return await self.collection.find_one({"slug": slug.strip()})
 
@@ -69,7 +69,7 @@ class ScholarshipRepository(BaseRepository):
         limit: int = 10,
         sort_by: str = "newest"
     ) -> Dict[str, Any]:
-        if not self.collection:
+        if self.collection is None:
             return {"items": [], "total": 0, "page": page, "limit": limit, "pages": 0}
 
         match_query: Dict[str, Any] = {}
@@ -140,27 +140,27 @@ class ScholarshipRepository(BaseRepository):
         }
 
     async def increment_views(self, id: str) -> None:
-        if self.collection and ObjectId.is_valid(id):
+        if self.collection is not None and ObjectId.is_valid(id):
             await self.collection.update_one(
                 {"_id": ObjectId(id)},
                 {"$inc": {"view_count": 1}}
             )
 
     async def increment_saved(self, id: str, delta: int = 1) -> None:
-        if self.collection and ObjectId.is_valid(id):
+        if self.collection is not None and ObjectId.is_valid(id):
             await self.collection.update_one(
                 {"_id": ObjectId(id)},
                 {"$inc": {"saved_count": delta}}
             )
 
     async def get_distinct_categories(self) -> List[str]:
-        if not self.collection:
+        if self.collection is None:
             return []
         categories = await self.collection.distinct("category", {"status": "published"})
         return sorted([c for c in categories if c])
 
     async def get_distinct_providers(self) -> List[str]:
-        if not self.collection:
+        if self.collection is None:
             return []
         providers = await self.collection.distinct("provider", {"status": "published"})
         return sorted([p for p in providers if p])

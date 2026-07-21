@@ -11,7 +11,7 @@ class SavedScholarshipRepository(BaseRepository):
     async def save_scholarship(
         self, student_id: str, scholarship_id: str, scholarship_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        if not self.collection:
+        if self.collection is None:
             return {}
 
         existing = await self.collection.find_one({
@@ -39,7 +39,7 @@ class SavedScholarshipRepository(BaseRepository):
         return created
 
     async def remove_saved_scholarship(self, student_id: str, scholarship_id: str) -> bool:
-        if not self.collection:
+        if self.collection is None:
             return False
         res = await self.collection.delete_one({
             "student_id": student_id,
@@ -48,7 +48,7 @@ class SavedScholarshipRepository(BaseRepository):
         return res.deleted_count > 0
 
     async def get_saved_by_student(self, student_id: str) -> List[Dict[str, Any]]:
-        if not self.collection:
+        if self.collection is None:
             return []
         cursor = self.collection.find({"student_id": student_id}).sort("saved_at", -1)
         items = await cursor.to_list(length=100)
@@ -57,7 +57,7 @@ class SavedScholarshipRepository(BaseRepository):
         return items
 
     async def is_saved(self, student_id: str, scholarship_id: str) -> bool:
-        if not self.collection:
+        if self.collection is None:
             return False
         count = await self.collection.count_documents({
             "student_id": student_id,

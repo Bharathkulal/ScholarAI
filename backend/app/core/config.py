@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_PASSWORD: str = "Admin@123"
     DEFAULT_SUPER_ADMIN_EMAIL: str = "superadmin@scholarai.com"
     DEFAULT_SUPER_ADMIN_PASSWORD: str = "SuperAdmin@123"
+    DEFAULT_DEMO_STUDENT_EMAIL: str = "demo@student.scholarai.com"
+    DEFAULT_DEMO_STUDENT_PASSWORD: str = "Scholar@123"
+    DEFAULT_DEMO_STUDENT_NAME: str = "Demo Student"
+
 
     
     # Database Configurations
