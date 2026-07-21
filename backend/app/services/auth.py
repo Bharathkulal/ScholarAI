@@ -104,7 +104,15 @@ class AuthService:
         user_id = str(user["_id"])
         token_data = {"sub": user_id, "email": user["email"], "role": user.get("role", "student")}
         access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
+
+        # Apply Remember Me session lifespan
+        remember_me = getattr(login_in, "remember_me", False)
+        if remember_me:
+            refresh_delta = timedelta(days=settings.REMEMBER_ME_DAYS)
+        else:
+            refresh_delta = timedelta(hours=settings.SESSION_EXPIRE_HOURS)
+
+        refresh_token = create_refresh_token(token_data, expires_delta=refresh_delta)
 
         await user_repo.store_refresh_token(user_id, refresh_token)
         await user_repo.update_last_login(user_id)
@@ -123,7 +131,8 @@ class AuthService:
 
     @classmethod
     async def refresh_tokens(cls, refresh_token: str, db: AsyncIOMotorDatabase) -> Dict[str, Any]:
-        payload = decode_access_token(refresh_token)
+        from app.core.security import decode_refresh_token
+        payload = decode_refresh_token(refresh_token) or decode_access_token(refresh_token)
         if not payload or payload.get("type") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -246,7 +255,14 @@ class AuthService:
         user_id = str(user["_id"])
         token_data = {"sub": user_id, "email": user["email"], "role": user.get("role", "student")}
         access_token = create_access_token(token_data)
-        refresh_token = create_refresh_token(token_data)
+
+        remember_me = getattr(google_in, "remember_me", False)
+        if remember_me:
+            refresh_delta = timedelta(days=settings.REMEMBER_ME_DAYS)
+        else:
+            refresh_delta = timedelta(hours=settings.SESSION_EXPIRE_HOURS)
+
+        refresh_token = create_refresh_token(token_data, expires_delta=refresh_delta)
 
         await user_repo.store_refresh_token(user_id, refresh_token)
         await user_repo.update_last_login(user_id)

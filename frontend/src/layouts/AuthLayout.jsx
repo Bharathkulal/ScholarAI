@@ -1,9 +1,22 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, Navigate } from 'react-router-dom';
 import Logo from '../components/common/Logo';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export const AuthLayout = () => {
+  const { isAuthenticated, user } = useAuth();
+
+  if (isAuthenticated && user) {
+    const role = user.role === 'superadmin' ? 'super_admin' : user.role || 'student';
+    if (role === 'super_admin') {
+      return <Navigate to="/super-admin/dashboard" replace />;
+    } else if (role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/student/dashboard" replace />;
+    }
+  }
   return (
     <div className="min-h-screen flex bg-[#EFEDE6] text-[#111111] overflow-hidden select-none">
       

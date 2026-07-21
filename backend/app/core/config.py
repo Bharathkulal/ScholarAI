@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,9 +15,21 @@ class Settings(BaseSettings):
     
     # Security Configurations
     JWT_SECRET: str = "temporary_secret_key_for_development_needs_to_be_overridden_in_production"
+    JWT_REFRESH_SECRET: str = "temporary_refresh_secret_key_for_development"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    REMEMBER_ME_DAYS: int = 30
+    SESSION_EXPIRE_HOURS: int = 24
+
+    # Cookie Configurations
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: str = "lax"
+    COOKIE_DOMAIN: Optional[str] = None
+
+    # Google OAuth Configurations
+    GOOGLE_CLIENT_ID: str = "950177095291-rcv6k6u1fiammaqpi9iolv01628j6gao.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET: str = ""
 
     # Default Seed Credentials
     DEFAULT_ADMIN_EMAIL: str = "admin@scholarai.com"

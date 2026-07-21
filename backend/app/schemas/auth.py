@@ -37,6 +37,7 @@ class AdminPasswordReset(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    remember_me: Optional[bool] = False
 
 class PasswordResetRequest(BaseModel):
     email: EmailStr
@@ -54,3 +55,4 @@ class GoogleLoginRequest(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     avatar: Optional[str] = None
+    remember_me: Optional[bool] = False

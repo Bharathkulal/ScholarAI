@@ -3,7 +3,7 @@ import bcrypt
 import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
@@ -59,7 +59,8 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
         "exp": expire,
         "type": "refresh"
     })
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    secret = getattr(settings, "JWT_REFRESH_SECRET", settings.JWT_SECRET) or settings.JWT_SECRET
+    encoded_jwt = jwt.encode(to_encode, secret, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
 def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
@@ -70,18 +71,74 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
     except jwt.PyJWTError:
         return None
 
+def decode_refresh_token(token: str) -> Optional[Dict[str, Any]]:
+    """Decodes a JWT refresh token, returning its payload."""
+    try:
+        secret = getattr(settings, "JWT_REFRESH_SECRET", settings.JWT_SECRET) or settings.JWT_SECRET
+        payload = jwt.decode(token, secret, algorithms=[settings.JWT_ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        # Fallback to main JWT_SECRET if token was created using standard secret
+        try:
+            return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        except jwt.PyJWTError:
+            return None
+
+def set_auth_cookies(
+    response: Response,
+    access_token: str,
+    refresh_token: str,
+    remember_me: bool = False
+) -> None:
+    """Sets secure HttpOnly authentication cookies on response."""
+    access_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    if remember_me:
+        refresh_max_age = settings.REMEMBER_ME_DAYS * 24 * 3600
+    else:
+        refresh_max_age = settings.SESSION_EXPIRE_HOURS * 3600
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        max_age=access_max_age,
+        path="/",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        domain=settings.COOKIE_DOMAIN,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        max_age=refresh_max_age,
+        path="/",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        domain=settings.COOKIE_DOMAIN,
+    )
+
+def clear_auth_cookies(response: Response) -> None:
+    """Deletes authentication cookies from user browser."""
+    response.delete_cookie(key="access_token", path="/", domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie(key="refresh_token", path="/", domain=settings.COOKIE_DOMAIN)
+
 async def get_current_user(
+    request: Request,
     token: Optional[str] = Depends(oauth2_scheme),
     db: Optional[AsyncIOMotorDatabase] = Depends(get_database)
 ) -> Dict[str, Any]:
-    """Retrieves authenticated user from database using JWT access token."""
-    if not token:
+    """Retrieves authenticated user from database using JWT access token from Bearer header or Cookie."""
+    token_to_verify = token or request.cookies.get("access_token")
+
+    if not token_to_verify:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication token required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    payload = decode_access_token(token)
+
+    payload = decode_access_token(token_to_verify)
     if not payload or payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

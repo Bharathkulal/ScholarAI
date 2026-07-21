@@ -107,8 +107,8 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuth]);
 
   // Login with email & password
-  const login = async (email, password) => {
-    const res = await loginApi({ email, password });
+  const login = async (email, password, rememberMe = false) => {
+    const res = await loginApi({ email, password, remember_me: rememberMe });
     const payload = res?.data || res;
     const userData = payload?.user || res?.user;
     const tokens = payload?.tokens || res?.tokens;
@@ -183,9 +183,33 @@ export const AuthProvider = ({ children }) => {
   // Logout current session
   const logout = async () => {
     const refreshToken = localStorage.getItem('refresh_token');
-    await logoutApi(refreshToken);
+    try {
+      await logoutApi(refreshToken);
+    } catch (e) {
+      // Ignore network errors on logout
+    }
     clearAuthSession();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FDFCF7] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#CD0000] flex items-center justify-center text-white font-extrabold text-2xl shadow-lg animate-pulse font-heading">
+            S
+          </div>
+          <div className="flex items-center space-x-1">
+            <span className="text-xl font-extrabold uppercase tracking-tight text-[#111111] font-heading">
+              Scholar<span className="text-[#CD0000]">AI</span>
+            </span>
+          </div>
+          <p className="text-xs text-[#666666] font-medium tracking-wide">
+            Verifying secure session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider

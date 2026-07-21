@@ -53,6 +53,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionExpired = searchParams.get('session_expired');
+  const [rememberMe, setRememberMe] = React.useState(true);
 
   const methods = useForm({
     resolver: customResolver(loginSchema),
@@ -67,7 +68,7 @@ const Login = () => {
   const performGoogleBackendLogin = async (googlePayload) => {
     toast.loading('Authenticating via Google OAuth...', { id: 'google-login' });
     try {
-      const profile = await googleLogin(googlePayload);
+      const profile = await googleLogin({ ...googlePayload, remember_me: rememberMe });
       toast.success(`Welcome, ${profile.full_name}! Signed in via Google.`, { id: 'google-login' });
       if (profile.role === 'super_admin' || profile.role === 'superadmin') {
         navigate('/super-admin/dashboard');
@@ -149,7 +150,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const profile = await login(data.email, data.password);
+      const profile = await login(data.email, data.password, rememberMe);
       toast.success(`Welcome back, ${profile.full_name}!`);
       
       const role = profile.role || 'student';
@@ -227,6 +228,21 @@ const Login = () => {
             autoComplete="new-password"
             required
           />
+
+          {/* Remember Me Option */}
+          <div className="flex items-center justify-between py-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-[#DDDDDD] text-[#CD0000] focus:ring-[#CD0000] accent-[#CD0000] cursor-pointer"
+              />
+              <span className="text-xs text-[#444444] font-medium font-sans">
+                Remember me for 30 days
+              </span>
+            </label>
+          </div>
 
           <Button
             type="submit"
